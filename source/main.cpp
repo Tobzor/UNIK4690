@@ -10,7 +10,6 @@ cv::Mat removed_background;
 cv::Mat frame;
 cv::Mat gray_frame;
 
-cv::Mat lab_frame;
 Mat threshold_output;
 
 // Function header
@@ -36,7 +35,6 @@ int main()
 	{
 		cap >> frame;
 		cv::cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
-		cv::cvtColor(frame, lab_frame, cv::COLOR_LBGR2Lab);
 
 		if (background_found) {
 
