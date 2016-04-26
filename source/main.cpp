@@ -1,16 +1,25 @@
 #include "opencv2/opencv.hpp"
 
+using namespace cv;
+using namespace std;
+
+
+RNG rng(12345);
+
+cv::Mat removed_background;
+cv::Mat frame;
+cv::Mat gray_frame;
+Mat threshold_output;
+
+// Function header
+void thresh_callback(int, void*);
+
 int main()
 {
-	cv::VideoCapture cap{ 1 };
+	cv::VideoCapture cap{ 0 };
 	if (!cap.isOpened()) {
 		throw std::runtime_error{ "Could not open VideoCapture" };
 	}
-
-
-	cv::Mat removed_background;
-	cv::Mat frame;
-	cv::Mat gray_frame;
 
 	cv::Mat background;
 	bool background_found = false;
@@ -32,10 +41,14 @@ int main()
 			removed_background = background - gray_frame;
 
 			removed_background.convertTo(removed_background, CV_8U);
+
+			// Blurring removed_background
+			blur(removed_background, removed_background, Size(3, 3));
+
+			thresh_callback(0, 0);
+			
 			cv::imshow("Background removed",removed_background);
 		}
-
-		cv::imshow("Input", frame);
 
 		char key = cv::waitKey(30);
 		if (key == ' ') {
@@ -44,5 +57,37 @@ int main()
 		}
 		else if (key >= 0) break;
 
+	}
+}
+
+/** @function thresh_callback */
+void thresh_callback(int, void*)
+{
+	Mat src_copy = frame.clone();
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+
+	/// Detect edges using Threshold
+	threshold(removed_background, threshold_output, 0, 255, THRESH_OTSU);
+	
+	cv::imshow("Input", threshold_output);
+
+	/// Find contours
+	findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+	/// Find the convex hull object for each contour
+	vector<vector<Point> >hull(contours.size());
+	for (int i = 0; i < contours.size(); i++)
+	{
+		convexHull(Mat(contours[i]), hull[i], false);
+	}
+
+	// Draw contours + hull results
+	// Mat drawing = Mat::zeros( threshold_output.size(), CV_8UC3 );
+	for (int i = 0; i < contours.size(); i++)
+	{
+		Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+		drawContours(removed_background, contours, i, color, 1, 8, vector<Vec4i>(), 0, Point());
+		drawContours(removed_background, hull, i, color, 1, 8, vector<Vec4i>(), 0, Point());
 	}
 }
