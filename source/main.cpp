@@ -27,8 +27,9 @@ int main()
 	bool background_found = false;
 
 
-	cv::namedWindow("Input");
-	cv::namedWindow("Background removed");
+	namedWindow("Input");
+	namedWindow("Background removed");
+	namedWindow("Threshold");
 
 
 	while (true)
@@ -55,6 +56,8 @@ int main()
 		std::vector<cv::Mat> spl;
 		cv::split(lab_frame, spl);
 
+		imshow("Input", frame);
+
 		char key = cv::waitKey(30);
 		if (key == ' ') {
 			background = gray_frame;
@@ -75,7 +78,7 @@ void thresh_callback(int, void*)
 	/// Detect edges using Threshold
 	threshold(removed_background, threshold_output, 0, 255, THRESH_OTSU);
 	
-	cv::imshow("Input", threshold_output);
+	imshow("Threshold", threshold_output);
 
 	/// Find contours
 	findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
@@ -87,12 +90,15 @@ void thresh_callback(int, void*)
 		convexHull(Mat(contours[i]), hull[i], false);
 	}
 
+	//Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+	Scalar colorBlue = Scalar(255, 0, 0);
+	Scalar colorRed = Scalar(0, 0, 255);
+
 	// Draw contours + hull results
 	// Mat drawing = Mat::zeros( threshold_output.size(), CV_8UC3 );
 	for (int i = 0; i < contours.size(); i++)
 	{
-		Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-		drawContours(removed_background, contours, i, color, 1, 8, vector<Vec4i>(), 0, Point());
-		drawContours(removed_background, hull, i, color, 1, 8, vector<Vec4i>(), 0, Point());
+		drawContours(frame, contours, i, colorBlue, 1, 8, vector<Vec4i>(), 0, Point());
+		drawContours(frame, hull, i, colorRed, 1, 8, vector<Vec4i>(), 0, Point());
 	}
 }
