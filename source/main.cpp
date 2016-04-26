@@ -1,11 +1,48 @@
-#include "Eigen/Eigen"
-#include "Eigen/Geometry"
-#include "Sophus/SE3.hpp"
 #include "opencv2/opencv.hpp"
-#include "opencv2/core/eigen.hpp"
-#include "opencv2/viz.hpp"
 
 int main()
 {
+	cv::VideoCapture cap{ 1 };
+	if (!cap.isOpened()) {
+		throw std::runtime_error{ "Could not open VideoCapture" };
+	}
 
+
+	cv::Mat removed_background;
+	cv::Mat frame;
+	cv::Mat gray_frame;
+
+	cv::Mat background;
+	bool background_found = false;
+
+
+	cv::namedWindow("Input");
+	cv::namedWindow("Background removed");
+
+
+	while (true)
+	{
+		cap >> frame;
+		cv::cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
+
+		if (background_found) {
+
+			background.convertTo(background, CV_32F);
+			gray_frame.convertTo(gray_frame, CV_32F);
+			removed_background = background - gray_frame;
+
+			removed_background.convertTo(removed_background, CV_8U);
+			cv::imshow("Background removed",removed_background);
+		}
+
+		cv::imshow("Input", frame);
+
+		char key = cv::waitKey(30);
+		if (key == ' ') {
+			background = gray_frame;
+			background_found = true;
+		}
+		else if (key >= 0) break;
+
+	}
 }
