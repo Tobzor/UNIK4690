@@ -6,14 +6,21 @@ using namespace std;
 
 RNG rng(12345);
 
-cv::Mat removed_background;
-cv::Mat frame;
-cv::Mat gray_frame;
-
+// Matrices
+Mat removed_background;
+Mat frame;
+Mat gray_frame;
+Mat background;
 Mat threshold_output;
 
+// Booleans
+bool background_found = false;
+
+
 // Function header
+void toggle(char);
 void thresh_callback(int, void*);
+void remove_background();
 
 int main()
 {
@@ -22,27 +29,22 @@ int main()
 		throw std::runtime_error{ "Could not open VideoCapture" };
 	}
 
-	cv::Mat background;
-	bool background_found = false;
-
-
 	namedWindow("Input");
 	namedWindow("Background removed");
 	namedWindow("Threshold");
 
-
-	while (true)
+	char key;
+	while ((key = cv::waitKey(30)) != 27)
 	{
 		cap >> frame;
-		cv::cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
 
+		
+		toggle(key);
+
+		cv::cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
 		if (background_found) {
 
-			background.convertTo(background, CV_32F);
-			gray_frame.convertTo(gray_frame, CV_32F);
-			removed_background = background - gray_frame;
-
-			removed_background.convertTo(removed_background, CV_8U);
+			remove_background();
 
 			// Blurring removed_background
 			blur(removed_background, removed_background, Size(3, 3));
@@ -51,20 +53,19 @@ int main()
 			
 			cv::imshow("Background removed",removed_background);
 		}
-		std::vector<cv::Mat> spl;
-		cv::split(lab_frame, spl);
 
 		imshow("Input", frame);
-
-		char key = cv::waitKey(30);
-		if (key == ' ') {
-			background = gray_frame;
-			background_found = true;
-		}
-		else if (key >= 0) break;
-
 	}
 }
+
+void toggle(char key)
+{
+	if (key == ' ') {
+		background = gray_frame;
+		background_found = true;
+	}
+}
+
 
 /** @function thresh_callback */
 void thresh_callback(int, void*)
@@ -99,4 +100,14 @@ void thresh_callback(int, void*)
 		drawContours(frame, contours, i, colorBlue, 1, 8, vector<Vec4i>(), 0, Point());
 		drawContours(frame, hull, i, colorRed, 1, 8, vector<Vec4i>(), 0, Point());
 	}
+}
+
+void remove_background() 
+{
+
+	background.convertTo(background, CV_32F);
+	gray_frame.convertTo(gray_frame, CV_32F);
+	removed_background = background - gray_frame;
+
+	removed_background.convertTo(removed_background, CV_8U);
 }
