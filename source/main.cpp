@@ -21,6 +21,7 @@ bool background_found = false;
 void toggle(char);
 void thresh_callback(int, void*);
 void remove_background();
+void draw_circles();
 
 int main()
 {
@@ -54,7 +55,9 @@ int main()
 			cv::imshow("Background removed",removed_background);
 		}
 
+		draw_circles();
 		imshow("Input", frame);
+
 	}
 }
 
@@ -110,4 +113,23 @@ void remove_background()
 	removed_background = background - gray_frame;
 
 	removed_background.convertTo(removed_background, CV_8U);
+}
+
+void draw_circles() {
+
+	int thickness = -1;
+	int lineType = 8;
+	int m = frame.rows;
+	int n = frame.cols;
+	float radius = 100;
+
+
+	Point center = Point(0.5f*m, 0.5f*n);
+	cv::Mat overlay = frame.clone();
+		
+	circle(overlay, center, radius, Scalar(255, 255, 255, 0.5), thickness, lineType);
+
+	double opacity = 0.3;
+	cv::addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
+	//circle(frame,center,radius,Scalar(255, 255, 255,0.5),thickness,lineType);
 }
