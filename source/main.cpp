@@ -66,8 +66,7 @@ void toggle(char key)
 	}
 }
 
-
-/** @function thresh_callback */
+// Finding threshold, contours, convexHull - drawing convexHull and contours.
 void thresh_callback(int, void*)
 {
 	Mat src_copy = frame.clone();
@@ -102,6 +101,7 @@ void thresh_callback(int, void*)
 	}
 }
 
+// Removes the background.
 void remove_background() 
 {
 
