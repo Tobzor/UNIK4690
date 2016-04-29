@@ -4,7 +4,7 @@ using namespace cv;
 using namespace std;
 
 // defualt constructor
-findHull::findHull ()
+findHull::findHull()
 {
 }
 
@@ -34,7 +34,7 @@ void findHull::thresh_callback(cv::Mat background_removed)
 	Scalar colorRed = Scalar(0, 0, 255);
 
 	// Draw contours + hull results
-	drawing = Mat::zeros( threshold_output.size(), CV_8UC3 );
+	drawing = Mat::zeros(threshold_output.size(), CV_8UC3);
 	for (int i = 0; i < contours.size(); i++)
 	{
 		drawContours(drawing, contours, i, colorBlue, 1, 8, vector<Vec4i>(), 0, Point());
