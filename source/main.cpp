@@ -1,5 +1,7 @@
 #include "opencv2/opencv.hpp"
 
+#include "findHull.h"
+
 using namespace cv;
 using namespace std;
 
@@ -10,16 +12,16 @@ RNG rng(12345);
 Mat removed_background;
 Mat frame;
 Mat gray_frame;
+Mat blurred_frame;
 Mat background;
 Mat threshold_output;
 
 // Booleans
 bool background_found = false;
-
-
+bool displayContour = false;
+bool displayBackground = true;
 // Function header
-void toggle(char);
-void thresh_callback(int, void*);
+void toggles(char);
 void remove_background();
 
 int main()
@@ -33,81 +35,60 @@ int main()
 	namedWindow("Background removed");
 	namedWindow("Threshold");
 
+	// Finnes sikkert bedre måte å gjøre det på, men IT WORKS atleast.
+	findHull hull;
+
 	char key;
 	while ((key = cv::waitKey(30)) != 27)
 	{
 		cap >> frame;
-
-		
-		toggle(key);
+		toggles(key);
 
 		cv::cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
+
+		// "Space" key pressed == removing background, and using this in thresholding.
 		if (background_found) {
-
 			remove_background();
-
-			// Blurring removed_background
-			blur(removed_background, removed_background, Size(3, 3));
-
-			thresh_callback(0, 0);
-			
-			cv::imshow("Background removed",removed_background);
+			cv::imshow("Background removed", removed_background);
+			hull.thresh_callback(removed_background);
 		}
+		// "t" key pressed == displaying contours instead of frame.
+		if (displayContour) {
 
-		imshow("Input", frame);
+			// If background is not set - threshold with gray_frame instead.
+			if (!background_found) {
+				// Blurring gray_frame
+				blur(gray_frame, blurred_frame, Size(3, 3));
+				hull.thresh_callback(gray_frame);
+			}
+			// display contour in "Input"
+			imshow("Input", hull.drawing);
+		}
+		else {
+			imshow("Input", frame);
+		}
 	}
 }
 
-void toggle(char key)
+void toggles(char key)
 {
 	if (key == ' ') {
 		background = gray_frame;
-		background_found = true;
+		background_found = !background_found;
 	}
-}
-
-// Finding threshold, contours, convexHull - drawing convexHull and contours.
-void thresh_callback(int, void*)
-{
-	Mat src_copy = frame.clone();
-	vector<vector<Point> > contours;
-	vector<Vec4i> hierarchy;
-
-	/// Detect edges using Threshold
-	threshold(removed_background, threshold_output, 0, 255, THRESH_OTSU);
-	
-	imshow("Threshold", threshold_output);
-
-	/// Find contours
-	findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-
-	/// Find the convex hull object for each contour
-	vector<vector<Point> >hull(contours.size());
-	for (int i = 0; i < contours.size(); i++)
-	{
-		convexHull(Mat(contours[i]), hull[i], false);
-	}
-
-	//Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-	Scalar colorBlue = Scalar(255, 0, 0);
-	Scalar colorRed = Scalar(0, 0, 255);
-
-	// Draw contours + hull results
-	// Mat drawing = Mat::zeros( threshold_output.size(), CV_8UC3 );
-	for (int i = 0; i < contours.size(); i++)
-	{
-		drawContours(frame, contours, i, colorBlue, 1, 8, vector<Vec4i>(), 0, Point());
-		drawContours(frame, hull, i, colorRed, 1, 8, vector<Vec4i>(), 0, Point());
+	if (key == 't') {
+		displayContour = !displayContour;
 	}
 }
 
 // Removes the background.
-void remove_background() 
+void remove_background()
 {
-
 	background.convertTo(background, CV_32F);
 	gray_frame.convertTo(gray_frame, CV_32F);
 	removed_background = background - gray_frame;
-
 	removed_background.convertTo(removed_background, CV_8U);
+
+	// Blurring removed_background
+	blur(removed_background, blurred_frame, Size(3, 3));
 }
