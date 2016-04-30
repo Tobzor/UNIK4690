@@ -21,6 +21,9 @@ vector<vector<int> >hull_indices;
 vector<vector<Vec4i> >defects;
 vector<Rect> boundRects;
 
+vector<Point> max_circle_centers;
+vector<float> max_circle_radius;
+
 // Booleans
 bool background_found = false;
 bool use_otsu = true;
@@ -114,11 +117,33 @@ void thresh_callback(int, void*)
 	hull_indices = vector<vector<int> >(contours.size());
 	boundRects   = vector<Rect>(contours.size());
 
+	max_circle_centers  = vector<Point>(contours.size());
+	max_circle_radius   = vector<float>(contours.size());
+
 	contours_approx.resize(contours.size());
 	for (int i = 0; i < contours.size(); i++)
 	{
 		approxPolyDP(Mat(contours[i]), contours_approx[i], 40, true);
 		boundRects[i] = boundingRect(Mat(contours_approx[i]));
+
+		float dist, maxdist = -1;
+		Point center, currentPoint;
+		int stepsize = 7;
+		for (int k = 0; k < boundRects[i].width; k = k + stepsize)
+		{
+			for (int l = 0; l < boundRects[i].height; l = l + stepsize)
+			{
+				currentPoint = Point(boundRects[i].x + k, boundRects[i].y + l);
+				dist = pointPolygonTest(contours[i], currentPoint, true);
+				if (dist > maxdist)
+				{
+					maxdist = dist;
+					center = currentPoint;
+				}
+			}
+		}
+		max_circle_centers[i] = center;
+		max_circle_radius[i] = maxdist;
 	}
 
 	for (int i = 0; i < contours.size(); i++)
@@ -127,6 +152,8 @@ void thresh_callback(int, void*)
 		convexHull(Mat(contours_approx[i]), hull[i], false);
 		convexHull(Mat(contours_approx[i]), hull_indices[i], false);
 		convexityDefects(contours_approx[i],hull_indices[i], defects[i]);
+
+
 	}
 
 	//Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
@@ -184,7 +211,10 @@ void draw_circles() {
 			circle(overlay, contours_approx[i][max_distance_idx], radius, Scalar(255, 0, 255), thickness, lineType);
 		}
 
-		rectangle(frame, boundRects[i].tl(), boundRects[i].br(), Scalar(255, 0, 0), 2, 8, 0);
+		rectangle(overlay, boundRects[i].tl(), boundRects[i].br(), Scalar(255, 0, 0), 2, 8, 0);
+		circle(overlay, Point(boundRects[i].x,boundRects[i].y),radius, Scalar(255, 100, 255), thickness, lineType);
+		circle(overlay, max_circle_centers[i], radius, Scalar(255, 100, 255), thickness, lineType);
+		circle(overlay, max_circle_centers[i], max_circle_radius[i], Scalar(255, 100, 255), 2, lineType);
 	}
 
 
