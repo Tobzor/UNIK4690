@@ -19,6 +19,7 @@ vector<vector<Point> > contours_approx;
 vector<vector<Point> >hull;
 vector<vector<int> >hull_indices;
 vector<vector<Vec4i> >defects;
+vector<Rect> boundRects;
 
 // Booleans
 bool background_found = false;
@@ -111,11 +112,13 @@ void thresh_callback(int, void*)
 	hull         = vector<vector<Point> >(contours.size());
 	defects      = vector<vector<Vec4i> >(contours.size());
 	hull_indices = vector<vector<int> >(contours.size());
+	boundRects   = vector<Rect>(contours.size());
 
 	contours_approx.resize(contours.size());
 	for (int i = 0; i < contours.size(); i++)
 	{
-		approxPolyDP(Mat(contours[i]), contours_approx[i], 3, true);
+		approxPolyDP(Mat(contours[i]), contours_approx[i], 40, true);
+		boundRects[i] = boundingRect(Mat(contours_approx[i]));
 	}
 
 	for (int i = 0; i < contours.size(); i++)
@@ -180,6 +183,8 @@ void draw_circles() {
 
 			circle(overlay, contours_approx[i][max_distance_idx], radius, Scalar(255, 0, 255), thickness, lineType);
 		}
+
+		rectangle(frame, boundRects[i].tl(), boundRects[i].br(), Scalar(255, 0, 0), 2, 8, 0);
 	}
 
 
