@@ -15,6 +15,7 @@ Mat threshold_output;
 
 
 vector<vector<Point> > contours;
+vector<vector<Point> > contours_approx;
 vector<vector<Point> >hull;
 vector<vector<int> >hull_indices;
 vector<vector<Vec4i> >defects;
@@ -104,15 +105,25 @@ void thresh_callback(int, void*)
 	/// Find contours
 	findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 
+
+
 	/// Find the convex hull object for each contour
 	hull         = vector<vector<Point> >(contours.size());
 	defects      = vector<vector<Vec4i> >(contours.size());
 	hull_indices = vector<vector<int> >(contours.size());
+
+	contours_approx.resize(contours.size());
 	for (int i = 0; i < contours.size(); i++)
 	{
-		convexHull(Mat(contours[i]), hull[i], false);
-		convexHull(Mat(contours[i]), hull_indices[i], false);
-		convexityDefects(contours[i],hull_indices[i], defects[i]);
+		approxPolyDP(Mat(contours[i]), contours_approx[i], 3, true);
+	}
+
+	for (int i = 0; i < contours.size(); i++)
+	{
+
+		convexHull(Mat(contours_approx[i]), hull[i], false);
+		convexHull(Mat(contours_approx[i]), hull_indices[i], false);
+		convexityDefects(contours_approx[i],hull_indices[i], defects[i]);
 	}
 
 	//Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
@@ -123,7 +134,7 @@ void thresh_callback(int, void*)
 	// Mat drawing = Mat::zeros( threshold_output.size(), CV_8UC3 );
 	for (int i = 0; i < contours.size(); i++)
 	{
-		drawContours(frame, contours, i, colorBlue, 1, 8, vector<Vec4i>(), 0, Point());
+		drawContours(frame, contours_approx, i, colorBlue, 1, 8, vector<Vec4i>(), 0, Point());
 		drawContours(frame, hull, i, colorRed, 1, 8, vector<Vec4i>(), 0, Point());
 	}
 }
@@ -152,7 +163,7 @@ void draw_circles() {
 		
 	//circle(overlay, center, radius, Scalar(255, 255, 255, 0.5), thickness, lineType);
 
-	double opacity = 0.3;
+	double opacity = 0.9;
 
 	
 	//circle(frame,center,radius,Scalar(255, 255, 255,0.5),thickness,lineType);
@@ -167,7 +178,7 @@ void draw_circles() {
 			Vec4i defect = defects[i][j];
 			int max_distance_idx = defect[2];
 
-			circle(overlay, contours[i][max_distance_idx], radius, Scalar(255, 0, 255), thickness, lineType);
+			circle(overlay, contours_approx[i][max_distance_idx], radius, Scalar(255, 0, 255), thickness, lineType);
 		}
 	}
 
