@@ -123,7 +123,7 @@ void thresh_callback(int, void*)
 	contours_approx.resize(contours.size());
 	for (int i = 0; i < contours.size(); i++)
 	{
-		approxPolyDP(Mat(contours[i]), contours_approx[i], 40, true);
+		approxPolyDP(Mat(contours[i]), contours_approx[i], 30, true);
 		boundRects[i] = boundingRect(Mat(contours_approx[i]));
 
 		float dist, maxdist = -1;
@@ -158,7 +158,7 @@ void thresh_callback(int, void*)
 
 	//Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
 	Scalar colorBlue = Scalar(255, 0, 0);
-	Scalar colorRed = Scalar(0, 0, 255);
+	Scalar colorRed  = Scalar(0, 0, 255);
 
 	// Draw contours + hull results
 	// Mat drawing = Mat::zeros( threshold_output.size(), CV_8UC3 );
@@ -182,7 +182,7 @@ void remove_background()
 void draw_circles() {
 
 	int thickness = -1;
-	int lineType = 8;
+	int lineType  = 8;
 	int m = frame.rows;
 	int n = frame.cols;
 	float radius = 5;
@@ -202,6 +202,7 @@ void draw_circles() {
 	{
 		for (int j = 0; j < hull[i].size(); j++) {
 			circle(overlay, hull[i][j], radius, Scalar(255, 255, 255), thickness, lineType);
+			line(overlay, max_circle_centers[i], hull[i][j], Scalar(0, 255, 255), 5, 8, 0);
 		}
 
 		for (int j = 0; j < defects[i].size(); j++) {
@@ -215,6 +216,7 @@ void draw_circles() {
 		circle(overlay, Point(boundRects[i].x,boundRects[i].y),radius, Scalar(255, 100, 255), thickness, lineType);
 		circle(overlay, max_circle_centers[i], radius, Scalar(255, 100, 255), thickness, lineType);
 		circle(overlay, max_circle_centers[i], max_circle_radius[i], Scalar(255, 100, 255), 2, lineType);
+
 	}
 
 
