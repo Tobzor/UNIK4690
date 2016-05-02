@@ -5,9 +5,6 @@
 using namespace cv;
 using namespace std;
 
-
-RNG rng(12345);
-
 // Matrices
 Mat removed_background;
 Mat frame;;
