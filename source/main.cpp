@@ -10,7 +10,7 @@ RNG rng(12345);
 
 // Matrices
 Mat removed_background;
-Mat frame;
+Mat frame;;
 Mat gray_frame;
 Mat blurred_frame;
 Mat background;
@@ -44,13 +44,14 @@ int main()
 		cap >> frame;
 		toggles(key);
 
+		flip(frame, frame, 180);
 		cv::cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
 
-		// "Space" key pressed == removing background, and using this in thresholding.
+		// "Space" key pressed == removing background, blurring it, and using this in thresholding.
 		if (background_found) {
 			remove_background();
+			hull.thresh_callback(blurred_frame);
 			cv::imshow("Background removed", removed_background);
-			hull.thresh_callback(removed_background);
 		}
 		// "t" key pressed == displaying contours instead of frame.
 		if (displayContour) {
@@ -59,7 +60,7 @@ int main()
 			if (!background_found) {
 				// Blurring gray_frame
 				blur(gray_frame, blurred_frame, Size(3, 3));
-				hull.thresh_callback(gray_frame);
+				hull.thresh_callback(blurred_frame);
 			}
 			// display contour in "Input"
 			imshow("Input", hull.drawing);
