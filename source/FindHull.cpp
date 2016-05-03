@@ -70,7 +70,7 @@ void FindHull::thresh_callback(cv::Mat background_removed)
 	float dist;
 	circle_radius = -1;
 	Point currentPoint;
-	int stepsize = 7;
+	int stepsize = 20;
 	for (int k = 0; k < boundRect.width; k = k + stepsize)
 	{
 		for (int l = 0; l < boundRect.height; l = l + stepsize)
