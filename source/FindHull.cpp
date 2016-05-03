@@ -65,7 +65,8 @@ void FindHull::thresh_callback(cv::Mat background_removed)
 
 	// Find bounding rectangle, simplified contour and max inscribed circle
 	// for largest contours
-	boundRect = boundingRect(contours[largest_C_index]);
+	boundRect   = boundingRect(contours[largest_C_index]);
+	minEnclosingCircle(contours[largest_C_index], bound_circle_center, bound_circle_radius);
 
 	float dist;
 	circle_radius = -1;

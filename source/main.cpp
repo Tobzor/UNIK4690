@@ -34,7 +34,7 @@ int thresh_val;
 // Function header
 void toggles(char);
 void remove_background();
-void draw_circles(vector<Point>  contours_approx, vector<Point> hull, vector<Vec4i> defects, Rect boundRect, Point max_circle_center, float max_circle_radius, double opacity);
+void draw_circles(vector<Point>  contours_approx, vector<Point> hull, vector<Vec4i> defects, Rect boundRect, Point max_circle_center, float max_circle_radius, Point2f bound_circle_center, float bound_circle_radius, double opacity);
 
 int main()
 {
@@ -88,7 +88,7 @@ int main()
 		}
 
 		if (hull.contours.size() > 0) {
-			draw_circles(hull.contour_approx, hull.approx_hull, hull.approx_defects, hull.boundRect, hull.circle_center, hull.circle_radius, 0.9);
+			draw_circles(hull.contour_approx, hull.approx_hull, hull.approx_defects, hull.boundRect, hull.circle_center, hull.circle_radius, hull.bound_circle_center, hull.bound_circle_radius, 0.9);
 			imshow("Circles", frame);
 		}
 	}
@@ -120,7 +120,7 @@ void remove_background()
 	blur(removed_background, blurred_frame, Size(3, 3));
 }
 
-void draw_circles(vector<Point>  contours_approx, vector<Point> hull, vector<Vec4i> defects, Rect boundRect, Point max_circle_center, float max_circle_radius, double opacity) {
+void draw_circles(vector<Point>  contours_approx, vector<Point> hull, vector<Vec4i> defects, Rect boundRect, Point max_circle_center, float max_circle_radius, Point2f bound_circle_center, float bound_circle_radius,  double opacity) {
 
 	int thickness = -1;
 	int lineType = 8;
@@ -155,6 +155,9 @@ void draw_circles(vector<Point>  contours_approx, vector<Point> hull, vector<Vec
 	if (max_circle_radius > 0) {
 		circle(overlay, max_circle_center, radius, Scalar(255, 100, 255), thickness, lineType);
 		circle(overlay, max_circle_center, max_circle_radius, Scalar(255, 100, 255), 2, lineType);
+	}
+	if (bound_circle_radius > 0) {
+		circle(overlay, bound_circle_center, bound_circle_radius, Scalar(255, 100, 255), 2, lineType);
 	}
 
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);

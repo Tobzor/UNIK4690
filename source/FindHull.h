@@ -22,7 +22,9 @@ public:
 	vector<Point> contour_approx, approx_hull;
 	vector<Vec4i> approx_defects; // storign convex defects
 	Point circle_center;
-	float circle_radius;
+	Point2f bound_circle_center;
+	float circle_radius, bound_circle_radius;
+	
 	Rect boundRect;
 
 
