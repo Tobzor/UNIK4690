@@ -20,6 +20,7 @@ bool displayBackground = true;
 // Function header
 void toggles(char);
 void remove_background();
+void draw_circles();
 
 int main()
 {
@@ -31,6 +32,7 @@ int main()
 	namedWindow("Input");
 	namedWindow("Background removed");
 	namedWindow("Threshold");
+	namedWindow("Circles");
 
 	// Finnes sikkert bedre måte å gjøre det på, men IT WORKS atleast.
 	findHull hull;
@@ -65,6 +67,10 @@ int main()
 		else {
 			imshow("Input", frame);
 		}
+
+		draw_circles();
+		imshow("Circles", frame);
+
 	}
 }
 
@@ -89,4 +95,23 @@ void remove_background()
 
 	// Blurring removed_background
 	blur(removed_background, blurred_frame, Size(3, 3));
+}
+
+void draw_circles() {
+
+	int thickness = -1;
+	int lineType = 8;
+	int m = frame.rows;
+	int n = frame.cols;
+	float radius = 100;
+
+
+	Point center = Point(0.5f*m, 0.5f*n);
+	cv::Mat overlay = frame.clone();
+		
+	circle(overlay, center, radius, Scalar(255, 255, 255, 0.5), thickness, lineType);
+
+	double opacity = 0.3;
+	cv::addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
+	//circle(frame,center,radius,Scalar(255, 255, 255,0.5),thickness,lineType);
 }
