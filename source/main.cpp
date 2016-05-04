@@ -163,8 +163,5 @@ void draw_circles(vector<Point>  contours_approx, vector<Point> hull, vector<Vec
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 }
 
-float angle_between(Point p0, Point p1,  Point p2) {
-	Point v = p0 - p1; Point u = p2 - p1;
 
-	return acos(v.dot(u) / (sqrt(v.dot(v)*u.dot(u))));
-}
+
