@@ -35,7 +35,7 @@ int thresh_val;
 void toggles(char);
 void remove_background();
 void draw_circles(vector<Point>  contours_approx, vector<Point> hull, vector<Vec4i> defects, Rect boundRect, Point max_circle_center, float max_circle_radius, Point2f bound_circle_center, float bound_circle_radius, double opacity);
-
+float angle_between(Point p0, Point p1, Point p2);
 int main()
 {
 	cv::VideoCapture cap{ 0 };
@@ -161,4 +161,10 @@ void draw_circles(vector<Point>  contours_approx, vector<Point> hull, vector<Vec
 	}
 
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
+}
+
+float angle_between(Point p0, Point p1,  Point p2) {
+	Point v = p0 - p1; Point u = p2 - p1;
+
+	return acos(v.dot(u) / (sqrt(v.dot(v)*u.dot(u))));
 }
