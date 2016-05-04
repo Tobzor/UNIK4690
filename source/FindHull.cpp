@@ -8,8 +8,10 @@ FindHull::FindHull()
 
 void FindHull::thresh_callback(cv::Mat background_removed)
 {
+	// Blurring removed_background
+	blur(background_removed, background_removed, Size(3, 3));
 
-	/// Detect edges using Threshold
+	// Detect edges using Threshold
 	threshold(background_removed, threshold_output, 0, 255, THRESH_OTSU);
 
 	imshow("Threshold", threshold_output);
@@ -39,7 +41,7 @@ void FindHull::thresh_callback(cv::Mat background_removed)
 	// Can now access from objects --> drawing class?
 	conv_hull = hull;
 	conv_defects = defects;
-	imgcontours = contours;
+	// imgcontours = contours; not necessary when contours is public.
 
 	// resetting values because genius.
 	largest_C_area = 0; largest_C_index = 0;
@@ -55,13 +57,13 @@ void FindHull::thresh_callback(cv::Mat background_removed)
 			largest_C_index = i;
 		}
 	} // end of largest contour search
-	contour_approx.resize(contours[largest_C_index].size());
-	approxPolyDP(Mat(contours[largest_C_index]), contour_approx, 30, true);
-	convexHull(Mat(contour_approx), approx_hull, false);
+	approx_contour.resize(contours[largest_C_index].size());
+	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 30, true);
+	convexHull(Mat(approx_contour), approx_hull, false);
 	vector<int> approx_inthull(contours[largest_C_index].size());
 
-	convexHull(Mat(contour_approx), approx_inthull, false);
-	convexityDefects(contour_approx, approx_inthull, approx_defects);
+	convexHull(Mat(approx_contour), approx_inthull, false);
+	convexityDefects(approx_contour, approx_inthull, approx_defects);
 
 	// Find bounding rectangle, simplified contour and max inscribed circle
 	// for largest contours
@@ -86,19 +88,18 @@ void FindHull::thresh_callback(cv::Mat background_removed)
 		}
 	}
 
-	//Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-	Scalar colorBlue = Scalar(255, 0, 0);
-	Scalar colorRed = Scalar(0, 0, 255);
+	RNG rng(12345);
+	Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+	//Scalar colorBlue = Scalar(255, 0, 0);
+	//Scalar colorRed = Scalar(0, 0, 255);
 
 	// Draw contours + hull results in this mat.
 	drawing = Mat::zeros(threshold_output.size(), CV_8UC3);
 
-	// Added if check to ensure that index of largest contour always is less than contour.size().
-	// I would guess it have something to do with continous updates. 
-	// Any ideas? Not strictly necessary at the moment.
+	// Checks if there are contours, then draws these into drawing
 	if (contours.size() > 0) {
-		drawContours(drawing, contours, largest_C_index, colorBlue, 2, 8, vector<Vec4i>(), 0, Point());
-		drawContours(drawing, hull, largest_C_index, colorRed, 2, 8, vector<Vec4i>(), 0, Point());
+		drawContours(drawing, contours, largest_C_index, color, 2, 8, vector<Vec4i>(), 0, Point());
+		drawContours(drawing, hull, largest_C_index, color, 2, 8, vector<Vec4i>(), 0, Point());
 	}
 
 	/* This loop draws every contour.
