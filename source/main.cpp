@@ -27,6 +27,7 @@ void remove_background();
 // draw_circles and required variable(s)
 void draw_circles(FindHull, double opacity);
 double opacity = 0.9;
+void draw_numbers(FindHull o, double opacity);
 int main()
 {
 	cv::VideoCapture cap{ 0 };
@@ -76,6 +77,7 @@ int main()
 
 		if (hull.contours.size() > 0) {
 			draw_circles(hull, opacity);
+			draw_numbers(hull, opacity);
 			imshow("Circles", frame);
 		}
 	}
@@ -143,6 +145,17 @@ void draw_circles(FindHull o, double opacity)
 	}
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 
+}
+
+void draw_numbers(FindHull o, double opacity) {
+
+	int lineType = 1;
+	Mat overlay = frame.clone();
+	for (int j = 0; j < o.approx_hull.size(); j++) {
+		putText(overlay, "test", o.approx_hull[j], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
+	}
+
+	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 }
 
 
