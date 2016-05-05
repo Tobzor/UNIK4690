@@ -62,8 +62,8 @@ int main()
 		}
 		// "t" key pressed == displaying contours instead of frame.
 		if (displayContour) {
-
 			// If background is not set - threshold with gray_frame instead.
+
 			if (!background_found) {
 				hull.thresh_callback(gray_frame, thresh_val, use_otsu);
 			}
@@ -120,25 +120,29 @@ void draw_circles(FindHull o, double opacity)
 		circle(overlay, o.approx_hull[j], radius, Scalar(255, 255, 255), thickness, lineType);
 		line(overlay, o.circle_center, o.approx_hull[j], Scalar(0, 255, 255), 5, 8, 0);
 	}
-
 	for (int j = 0; j < o.approx_defects.size(); j++) {
 		Vec4i defect = o.approx_defects[j];
 		int max_distance_idx = defect[2];
 		circle(overlay, o.approx_contour[max_distance_idx], radius, Scalar(255, 0, 255), thickness, lineType);
 	}
-
 	rectangle(overlay, o.boundRect.tl(), o.boundRect.br(), Scalar(255, 0, 0), 2, 8, 0);
 	circle(overlay, Point(o.boundRect.x, o.boundRect.y), radius, Scalar(255, 100, 255), thickness, lineType);
-
 	if (o.circle_radius > 0) {
 		circle(overlay, o.circle_center, radius, Scalar(255, 100, 255), thickness, lineType);
 		circle(overlay, o.circle_center, o.circle_radius, Scalar(255, 100, 255), 2, lineType);
 	}
-
 	if (o.bound_circle_radius > 0) {
 		circle(overlay, o.bound_circle_center, o.bound_circle_radius, Scalar(255, 100, 255), 2, lineType);
 	}
+	for (int i = 0; i < o.curv_below_t_idx.size(); i++) {
+		int idx = o.curv_below_t_idx[i];
+		//cout << idx << ", size: " << o.approx_contour.size()<< "\n";
+		Point p = o.approx_contour[idx];
+		circle(overlay, p, 2, Scalar(0, 0, 255), thickness, lineType);
+		int test2 = 0;
+	}
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
+
 }
 
 
