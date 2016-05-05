@@ -12,7 +12,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 
 	if (!use_otsu) {
 		// Detect edges using Threshold, with trackbar values.
-		threshold(background_removed, threshold_output, thresh_val, 255, THRESH_BINARY_INV);
+		threshold(background_removed, threshold_output, thresh_val, 255, THRESH_BINARY);
 	}
 	else
 	{
