@@ -40,8 +40,7 @@ int main()
 	namedWindow("Threshold"); // active when thresholding (any frame)
 	namedWindow("Circles"); // Used for displaying circles and stuff
 
-	// TODO
-	// Trackbar to be used when otsu is overreacting --> to be added.
+	// Trackbar to be used when otsu is overreacting
 	thresh_val = 240,
 
 		createTrackbar("Threshold", "Threshold", &thresh_val, 255);
@@ -58,15 +57,15 @@ int main()
 		// "Space" pressed --> removing background
 		if (background_found) {
 			remove_background();
-			hull.thresh_callback(removed_background);
+			hull.thresh_callback(removed_background, thresh_val, use_otsu);
 			imshow("Background removed", removed_background);
 		}
 		// "t" key pressed == displaying contours instead of frame.
 		if (displayContour) {
-			if (!background_found) {
-
 			// If background is not set - threshold with gray_frame instead.
-				hull.thresh_callback(gray_frame);
+
+			if (!background_found) {
+				hull.thresh_callback(gray_frame, thresh_val, use_otsu);
 			}
 			// display contour in "Input"
 			imshow("Input", hull.drawing);
@@ -81,7 +80,6 @@ int main()
 		}
 	}
 }
-
 
 void toggles(char key)
 {

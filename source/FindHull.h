@@ -33,7 +33,7 @@ public:
 
 
 	Mat drawing;
-	void thresh_callback(Mat background_removed);
+	void thresh_callback(Mat, int, bool);
 
 	//constructor
 	FindHull();
