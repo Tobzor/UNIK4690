@@ -109,7 +109,27 @@ void FindHull::thresh_callback(cv::Mat background_removed)
 	}
 	*/
 }
+vector<float> k_curvature(vector<Point> contour, int k, float threshold){
+	vector<float> curvature = vector<float>(contour.size());
+	vector<int> curvature_below_thresh_index;
+	for (int i = k; i < contour.size()-k; i++) {
+		Point p0 = curvature[i - k];
+		Point p1 = curvature[i];
+		Point p2 = curvature[i + k];
+		curvature[i] = angle_between(p0, p1, p2);
+		if (curvature[i] < threshold){
+			curvature_below_thresh_index.push_back(i);
+		}
+		
+	}
+	return curvature;
+}
 
+float angle_between(Point p0, Point p1, Point p2) {
+	Point v = p0 - p1; Point u = p2 - p1;
+
+	return acos(v.dot(u) / (sqrt(v.dot(v)*u.dot(u))));
+}
 
 
 // deConstructor

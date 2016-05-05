@@ -26,6 +26,8 @@ public:
 	float circle_radius, bound_circle_radius;
 	
 	Rect boundRect;
+	vector<float> curvature;
+	vector<float> k_curvature(vector<Point> contour, int k);
 
 
 	cv::Mat drawing;
