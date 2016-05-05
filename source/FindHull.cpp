@@ -5,14 +5,21 @@ FindHull::FindHull()
 {
 }
 
-void FindHull::thresh_callback(cv::Mat background_removed)
+void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool use_otsu)
 {
 	// Blurring removed_background
 	blur(background_removed, background_removed, Size(3, 3));
 
-	// Detect edges using Threshold
-	threshold(background_removed, threshold_output, 0, 255, THRESH_OTSU);
-
+	if (!use_otsu) {
+		// Detect edges using Threshold, with trackbar values.
+		threshold(background_removed, threshold_output, thresh_val, 255, THRESH_BINARY_INV);
+	}
+	else
+	{
+		// Detect edges using Threshold
+		threshold(background_removed, threshold_output, 0, 255, THRESH_OTSU);
+	}
+	
 	imshow("Threshold", threshold_output);
 
 	/// Find contours
@@ -128,7 +135,6 @@ vector<float> FindHull::k_curvature(vector<Point> contour, vector<int>& curv_bel
 
 float FindHull::angle_between(Point p0, Point p1, Point p2) {
 	Point v = p0 - p1; Point u = p2 - p1;
-
 	return acos(v.dot(u) / (sqrt(v.dot(v)*u.dot(u))));
 }
 
