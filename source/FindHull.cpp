@@ -5,7 +5,6 @@ FindHull::FindHull()
 {
 }
 
-
 void FindHull::thresh_callback(cv::Mat background_removed)
 {
 	// Blurring removed_background
@@ -110,7 +109,28 @@ void FindHull::thresh_callback(cv::Mat background_removed)
 	}
 	*/
 }
+vector<float> FindHull::k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold)
+{
+	vector<float> curvature = vector<float>(contour.size());
+	//vector<int> curv_below_t_idx;
+	for (int i = k; i < contour.size()-k; i++) {
+		Point p0 = curvature[i - k];
+		Point p1 = curvature[i];
+		Point p2 = curvature[i + k];
+		curvature[i] = angle_between(p0, p1, p2);
+		if (curvature[i] < threshold){
+			curv_below_t_idx.push_back(i);
+		}
+		
+	}
+	return curvature;
+}
 
+float FindHull::angle_between(Point p0, Point p1, Point p2) {
+	Point v = p0 - p1; Point u = p2 - p1;
+
+	return acos(v.dot(u) / (sqrt(v.dot(v)*u.dot(u))));
+}
 
 
 // deConstructor

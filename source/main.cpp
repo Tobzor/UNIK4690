@@ -23,10 +23,10 @@ int thresh_val;
 // Function headers
 void toggles(char);
 void remove_background();
-// draw_circles and required variable(s)
-void draw_circles(FindHull, double &opacity);
-double opacity = 0.9;
 
+// draw_circles and required variable(s)
+void draw_circles(FindHull, double opacity);
+double opacity = 0.9;
 int main()
 {
 	cv::VideoCapture cap{ 0 };
@@ -106,7 +106,7 @@ void remove_background()
 	removed_background.convertTo(removed_background, CV_8U);
 }
 
-void draw_circles(FindHull o, double &opacity)
+void draw_circles(FindHull o, double opacity)
 {
 	int thickness = -1;
 	int lineType = 8;
@@ -142,3 +142,6 @@ void draw_circles(FindHull o, double &opacity)
 	}
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 }
+
+
+
