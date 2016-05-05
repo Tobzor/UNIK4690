@@ -64,7 +64,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 		}
 	} // end of largest contour search
 	approx_contour.resize(contours[largest_C_index].size());
-	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 10, true);
+	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 30, true);
 	convexHull(Mat(approx_contour), approx_hull, false);
 	vector<int> approx_inthull(contours[largest_C_index].size());
 
