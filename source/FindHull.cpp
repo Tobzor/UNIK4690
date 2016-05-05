@@ -109,16 +109,16 @@ void FindHull::thresh_callback(cv::Mat background_removed)
 	}
 	*/
 }
-vector<float> k_curvature(vector<Point> contour, int k, float threshold){
+vector<float> k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold){
 	vector<float> curvature = vector<float>(contour.size());
-	vector<int> curvature_below_thresh_index;
+	//vector<int> curv_below_t_idx;
 	for (int i = k; i < contour.size()-k; i++) {
 		Point p0 = curvature[i - k];
 		Point p1 = curvature[i];
 		Point p2 = curvature[i + k];
 		curvature[i] = angle_between(p0, p1, p2);
 		if (curvature[i] < threshold){
-			curvature_below_thresh_index.push_back(i);
+			curv_below_t_idx.push_back(i);
 		}
 		
 	}
