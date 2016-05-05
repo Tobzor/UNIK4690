@@ -57,7 +57,7 @@ void FindHull::thresh_callback(cv::Mat background_removed)
 		}
 	} // end of largest contour search
 	approx_contour.resize(contours[largest_C_index].size());
-	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 30, true);
+	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 10, true);
 	convexHull(Mat(approx_contour), approx_hull, false);
 	vector<int> approx_inthull(contours[largest_C_index].size());
 
@@ -100,11 +100,14 @@ void FindHull::thresh_callback(cv::Mat background_removed)
 		drawContours(drawing, contours, largest_C_index, color, 2, 8, vector<Vec4i>(), 0, Point());
 		drawContours(drawing, hull, largest_C_index, color, 2, 8, vector<Vec4i>(), 0, Point());
 	}
-
+	
+	curv_below_t_idx.clear();
+	curvature = k_curvature(approx_contour, curv_below_t_idx, 1,  65*CV_PI/180);
+	int test = 0;
 	/* This loop draws every contour.
+		drawContours(drawing, contours, i, colorBlue, 2, 8, vector<Vec4i>(), 0, Point());
 	for (int i = 0; i < contours.size(); i++)
 	{
-		drawContours(drawing, contours, i, colorBlue, 2, 8, vector<Vec4i>(), 0, Point());
 		drawContours(drawing, hull, i, colorRed, 2, 8, vector<Vec4i>(), 0, Point());
 	}
 	*/
@@ -114,22 +117,23 @@ vector<float> FindHull::k_curvature(vector<Point> contour, vector<int>& curv_bel
 	vector<float> curvature = vector<float>(contour.size());
 	//vector<int> curv_below_t_idx;
 	for (int i = k; i < contour.size()-k; i++) {
-		Point p0 = curvature[i - k];
-		Point p1 = curvature[i];
-		Point p2 = curvature[i + k];
+		Point p0 = contour[i - k];
+		Point p1 = contour[i];
+		Point p2 = contour[i + k];
 		curvature[i] = angle_between(p0, p1, p2);
 		if (curvature[i] < threshold){
 			curv_below_t_idx.push_back(i);
 		}
-		
 	}
 	return curvature;
 }
 
 float FindHull::angle_between(Point p0, Point p1, Point p2) {
 	Point v = p0 - p1; Point u = p2 - p1;
-
-	return acos(v.dot(u) / (sqrt(v.dot(v)*u.dot(u))));
+	float dot_product = v.dot(u);
+	float length_v = sqrt(v.dot(v));
+	float length_u = sqrt(u.dot(u));
+	return acos(dot_product / (length_u*length_v));
 }
 
 

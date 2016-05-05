@@ -27,6 +27,7 @@ public:
 	
 	Rect boundRect;
 	vector<float> curvature;
+	vector<int> curv_below_t_idx;
 	vector<float> k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold);
 	float FindHull::angle_between(Point p0, Point p1, Point p2);
 
