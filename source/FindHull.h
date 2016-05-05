@@ -26,6 +26,9 @@ public:
 	float circle_radius, bound_circle_radius;
 	
 	Rect boundRect;
+	vector<float> curvature;
+	vector<float> k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold);
+	float FindHull::angle_between(Point p0, Point p1, Point p2);
 
 
 	Mat drawing;
