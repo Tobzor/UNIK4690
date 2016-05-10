@@ -34,6 +34,7 @@ public:
 
 	Mat drawing;
 	void thresh_callback(Mat, int, bool);
+	int find_thumb();
 
 	//constructor
 	FindHull();

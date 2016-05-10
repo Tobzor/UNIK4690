@@ -109,7 +109,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 	}
 	
 	curv_below_t_idx.clear();
-	curvature = k_curvature(approx_contour, curv_below_t_idx, 1,  65*CV_PI/180);
+	curvature = k_curvature(approx_contour, curv_below_t_idx,1,  65*CV_PI/180);
 	int test = 0;
 	/* This loop draws every contour.
 		drawContours(drawing, contours, i, colorBlue, 2, 8, vector<Vec4i>(), 0, Point());
@@ -145,8 +145,39 @@ float FindHull::angle_between(Point p0, Point p1, Point p2) {
 
 }
 
+int FindHull::find_thumb() {
+	float current_area;
+	float max_area = -1;
+	int thumb_index = 0;
+	for (int i = 0; i < approx_defects.size(); i++)
+	{
+		Vec4i defect = approx_defects[i];
+		Point start = approx_contour[defect[0]];
+		Point stop  = approx_contour[defect[1]];
+		Point d = start - stop;
+
+		float depth = defect[3]/256.0;
+		float width = sqrt((d).dot(d));
+
+		current_area = 0.5*depth*width;
+
+		if (current_area > max_area) {
+			thumb_index = defect[0];
+			max_area = current_area;
+		}
+
+
+	}
+	return thumb_index;
+}
+
+
+float findTriangleArea(Point p1, Point p2, Point p3) {
+	return 0.5*(p1.x*(p2.y - p3.y) + p2.x*(p3.y - p1.y) + p3.x*(p1.y - p2.y));
+}
 
 // deConstructor
 FindHull::~FindHull()
 {
+	
 }

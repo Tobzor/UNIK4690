@@ -30,7 +30,7 @@ double opacity = 0.9;
 void draw_numbers(FindHull o, double opacity);
 int main()
 {
-	cv::VideoCapture cap{ 0 };
+	cv::VideoCapture cap{ 1};
 	if (!cap.isOpened()) {
 		throw std::runtime_error{ "Could not open VideoCapture" };
 	}
@@ -143,6 +143,11 @@ void draw_circles(FindHull o, double opacity)
 		circle(overlay, p, 2, Scalar(0, 0, 255), thickness, lineType);
 		int test2 = 0;
 	}
+
+	int thumb_index = o.find_thumb();
+
+	circle(overlay, o.approx_contour[thumb_index], radius*3, Scalar(255, 255, 255), thickness, lineType);
+
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 
 }
@@ -152,7 +157,8 @@ void draw_numbers(FindHull o, double opacity) {
 	int lineType = 1;
 	Mat overlay = frame.clone();
 	for (int j = 0; j < o.approx_hull.size(); j++) {
-		putText(overlay, "test", o.approx_hull[j], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
+		putText(overlay, to_string(j), o.approx_hull[j], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
+		
 	}
 
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
