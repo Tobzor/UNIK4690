@@ -64,16 +64,17 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 		}
 	} // end of largest contour search
 	approx_contour.resize(contours[largest_C_index].size());
-	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 30, true);
+	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 20, true);
 	convexHull(Mat(approx_contour), approx_hull, false);
 	vector<int> approx_inthull(contours[largest_C_index].size());
 
 	convexHull(Mat(approx_contour), approx_inthull, false);
 	convexityDefects(approx_contour, approx_inthull, approx_defects);
-
+	fingers_idx.clear();
+	fingers_idx = find_finger_points(approx_inthull);
 	// Find bounding rectangle, simplified contour and max inscribed circle
 	// for largest contours
-	boundRect   = boundingRect(contours[largest_C_index]);
+	boundRect = boundingRect(contours[largest_C_index]);
 	minEnclosingCircle(contours[largest_C_index], bound_circle_center, bound_circle_radius);
 
 	float dist;
@@ -96,8 +97,8 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 
 	RNG rng(12345);
 	Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-	//Scalar colorBlue = Scalar(255, 0, 0);
-	//Scalar colorRed = Scalar(0, 0, 255);
+	// Scalar colorBlue = Scalar(255, 0, 0);
+	// Scalar colorRed = Scalar(0, 0, 255);
 
 	// Draw contours + hull results in this mat.
 	drawing = Mat::zeros(threshold_output.size(), CV_8UC3);
@@ -135,6 +136,26 @@ vector<float> FindHull::k_curvature(vector<Point> contour, vector<int>& curv_bel
 	return curvature;
 }
 
+float FindHull::k_curvature(int idx,int k, vector<Point> contour) {
+	
+	int p0_idx = idx - k;
+	int p2_idx = idx + k;
+
+	int N = contour.size();
+
+	if (p0_idx < 0) {
+		p0_idx = p0_idx + N;
+	}
+	if (p2_idx > N-1) {
+		p2_idx = p2_idx - N;
+	}
+	
+	Point p0 = contour[p0_idx];
+	Point p1 = contour[idx];
+	Point p2 = contour[p2_idx];
+	return angle_between(p0, p1, p2);
+}
+
 float FindHull::angle_between(Point p0, Point p1, Point p2) {
 	Point v = p0 - p1; Point u = p2 - p1;
 
@@ -152,8 +173,8 @@ int FindHull::find_thumb() {
 	for (int i = 0; i < approx_defects.size(); i++)
 	{
 		Vec4i defect = approx_defects[i];
-		Point start = approx_contour[defect[0]];
-		Point stop  = approx_contour[defect[1]];
+		Point start  = approx_contour[defect[0]];
+		Point stop   = approx_contour[defect[1]];
 		Point d = start - stop;
 
 		float depth = defect[3]/256.0;
@@ -171,6 +192,31 @@ int FindHull::find_thumb() {
 	return thumb_index;
 }
 
+vector < int> FindHull::find_finger_points(vector <int> approx_hull_idx) {
+	vector <int> fingers_idx;
+	int finger_idx = 0;
+	int k = 1;
+	for (int i = k; i < approx_hull_idx.size()-k; i++)
+	{
+		finger_idx = approx_hull_idx[i];
+		if (is_finger_point_idx(finger_idx)) {
+			fingers_idx.push_back(finger_idx);
+		}
+	}
+	return fingers_idx;
+}
+
+bool FindHull::is_finger_point_idx(int idx) {
+	bool is_fp_idx = true;
+	float kc = k_curvature(idx, 1, approx_contour)*180/CV_PI;
+	if ( kc > 75) {
+		is_fp_idx = false;
+	}
+	else {
+		int test = 0;
+	}
+	return is_fp_idx;
+}
 
 float findTriangleArea(Point p1, Point p2, Point p3) {
 	return 0.5*(p1.x*(p2.y - p3.y) + p2.x*(p3.y - p1.y) + p3.x*(p1.y - p2.y));

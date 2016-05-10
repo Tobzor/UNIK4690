@@ -12,6 +12,8 @@ private:
 	vector<Vec4i> hierarchy;
 	int largest_C_area = 0;
 	int largest_C_index = 0;
+	bool is_finger_point_idx(int idx);
+	float k_curvature(int idx, int k, vector<Point> contour);
 
 public:
 	vector<vector<Point> > imgcontours; // storing contours
@@ -29,9 +31,9 @@ public:
 	vector<float> curvature;
 	vector<int> curv_below_t_idx;
 	vector<float> k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold);
-	float FindHull::angle_between(Point p0, Point p1, Point p2);
-
-
+	float angle_between(Point p0, Point p1, Point p2);
+	vector < int> find_finger_points(vector <int> approx_hull_idx);
+	vector<int> fingers_idx;
 	Mat drawing;
 	void thresh_callback(Mat, int, bool);
 	int find_thumb();

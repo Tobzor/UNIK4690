@@ -148,6 +148,9 @@ void draw_circles(FindHull o, double opacity)
 
 	circle(overlay, o.approx_contour[thumb_index], radius*3, Scalar(255, 255, 255), thickness, lineType);
 
+	for (int i = 0; i < o.fingers_idx.size(); i++) {
+		circle(overlay, o.approx_contour[o.fingers_idx[i]], radius * 3, Scalar(255, 0, 0), thickness, lineType);
+	}
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 
 }
