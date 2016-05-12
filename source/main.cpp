@@ -19,6 +19,11 @@ bool use_otsu = true;
 
 // Variables
 int thresh_val;
+float gun_count;
+Point bullet;
+Point bullet_velocity;
+Point bullet_acceleration;
+bool hasfired = false;
 
 // Function headers
 void toggles(char);
@@ -28,6 +33,7 @@ void remove_background();
 void draw_circles(FindHull, double opacity);
 double opacity = 0.9;
 void draw_numbers(FindHull o, double opacity);
+bool is_finger_gun(FindHull o);
 int main()
 {
 	cv::VideoCapture cap{ 0};
@@ -35,6 +41,7 @@ int main()
 		throw std::runtime_error{ "Could not open VideoCapture" };
 	}
 	FindHull hull;
+	gun_count++;
 
 	namedWindow("Input"); // either contours + hull or unedited frame
 	namedWindow("Background removed"); // active when background is removed
@@ -149,7 +156,9 @@ void draw_circles(FindHull o, double opacity)
 	}
 	//int thumb_index = o.find_thumb();
 	//circle(overlay, o.approx_contour[thumb_index], radius*3, Scalar(255, 255, 255), thickness, lineType);
-
+	vector<vector<Point> > contourVec;
+	contourVec.push_back(o.approx_contour);
+	drawContours(overlay, contourVec, 0, Scalar(0, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
 
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 
@@ -164,9 +173,77 @@ void draw_numbers(FindHull o, double opacity) {
 		
 	}
 	putText(overlay, to_string(o.fingers_idx.size()), Point(50,50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
+	//putText(overlay, to_string(gun_count), Point(100, 100), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
+	if (is_finger_gun(o)) {
+		if (gun_count > 25) {
+			hasfired = false;
+			gun_count = 0;
+		}
+		if (gun_count > 10) {
+			
+			putText(overlay, "FIRE!", Point(200, 200), CV_FONT_HERSHEY_COMPLEX, 4, Scalar(0, 0, 255), 4, lineType);
+			if (hasfired) {
+				bullet_velocity = bullet_velocity + bullet_acceleration;
+				bullet = bullet + bullet_velocity;
+			}
+			else {
+				hasfired = true;
+				Point p1 = o.approx_contour[o.fingers_idx[0]];
+				Point p2 = o.approx_contour[o.fingers_idx[1]];
+				Point d1 = p1 - o.circle_center;
+				Point d2 = p2 - o.circle_center;
+				Point d;
+				Point p;
+				if (sqrt(d1.dot(d1)) > sqrt(d2.dot(d2))) {
+					d = d1;
+					p = p1;
+				}
+				else {
+					d = d2;
+					p = p2;
+				}
+				bullet_velocity = 50*d/sqrt(d.dot(d));
+				bullet_acceleration = bullet_velocity / 60;
+				bullet = p;
+			}
+			circle(overlay, bullet, 10, Scalar(0, 255, 0), -1, lineType);
+		}
+		else if (gun_count > 5) {
 
+			putText(overlay, to_string(int(10-gun_count)), Point(200, 200), CV_FONT_HERSHEY_COMPLEX, 4, Scalar(0, 0, 255), 4, lineType);
+		}
+		else {
 
+			putText(overlay, "AIM", Point(200, 200), CV_FONT_HERSHEY_COMPLEX, 4, Scalar(0, 0, 255), 4, lineType);
+		}
+
+		gun_count = gun_count + 1.0f;
+	}
+	else {
+		gun_count = 0;
+		hasfired  = false;
+	}
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
+}
+
+bool is_finger_gun(FindHull o) {
+	int num_fingers = o.fingers_idx.size();
+	if (num_fingers != 2) {
+		return false;
+	}
+	int f1_idx  = o.fingers_idx[0];
+	int f2_idx  = o.fingers_idx[1];
+	//int midt_idx = f1_idx + 1;
+	Point p1 = o.approx_contour[f1_idx];
+	//Point p2 = o.approx_contour[midt_idx];
+	Point p2 = o.circle_center;
+	Point p3 = o.approx_contour[f2_idx];
+	float angle = o.angle_between(p1, p2, p3)*180/CV_PI;
+
+	if ((angle > 100) || (angle < 75)) {
+		return false;
+	}
+	return true;
 }
 
 

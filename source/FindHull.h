@@ -21,7 +21,7 @@ public:
 	vector<vector<Vec4i> > conv_defects; // storing convex defects
 	vector<vector<Point> > contours;
 
-	vector<Point> approx_contour, approx_hull;
+	vector<Point> approx_contour, approx_hull, semi_approx_contour;
 	vector<Vec4i> approx_defects; // storing convex defects
 	Point circle_center;
 	Point2f bound_circle_center;
