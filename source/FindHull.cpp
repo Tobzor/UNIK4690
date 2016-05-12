@@ -12,7 +12,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 
 	if (!use_otsu) {
 		// Detect edges using Threshold, with trackbar values.
-		threshold(background_removed, threshold_output, thresh_val, 255, THRESH_BINARY_INV);
+		threshold(background_removed, threshold_output, thresh_val, 255, THRESH_BINARY);
 	}
 	else
 	{
@@ -64,7 +64,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 		}
 	} // end of largest contour search
 	approx_contour.resize(contours[largest_C_index].size());
-	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 10, true);
+	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 30, true);
 	convexHull(Mat(approx_contour), approx_hull, false);
 	vector<int> approx_inthull(contours[largest_C_index].size());
 
