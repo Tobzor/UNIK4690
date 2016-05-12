@@ -80,12 +80,26 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 	float dist;
 	circle_radius = -1;
 	Point currentPoint;
-	int stepsize = 20;
-	for (int k = 0; k < boundRect.width; k = k + stepsize)
+	int stepsize = 40;
+	for (int k = 0.25*boundRect.width; k < 0.75*boundRect.width; k = k + stepsize)
 	{
-		for (int l = 0; l < boundRect.height; l = l + stepsize)
+		for (int l = 0.25*boundRect.height; l < 0.75*boundRect.height; l = l + stepsize)
 		{
 			currentPoint = Point(boundRect.x + k, boundRect.y + l);
+			dist = pointPolygonTest(contours[largest_C_index], currentPoint, true);
+			if (dist > circle_radius)
+			{
+				circle_radius = dist;
+				circle_center = currentPoint;
+			}
+		}
+	}
+	Point cc = circle_center;
+	for (int k = cc.x - 0.5*stepsize; k < cc.x + 0.5*stepsize; k++)
+	{
+		for (int l = cc.y - 0.5*stepsize; l < cc.y + 0.5*stepsize; l++)
+		{
+			currentPoint = Point(k,l);
 			dist = pointPolygonTest(contours[largest_C_index], currentPoint, true);
 			if (dist > circle_radius)
 			{
@@ -196,25 +210,32 @@ vector < int> FindHull::find_finger_points(vector <int> approx_hull_idx) {
 	vector <int> fingers_idx;
 	int finger_idx = 0;
 	int k = 1;
-	for (int i = k; i < approx_hull_idx.size()-k; i++)
+	for (int i = 0; i < approx_hull_idx.size(); i++)
 	{
 		finger_idx = approx_hull_idx[i];
 		if (is_finger_point_idx(finger_idx)) {
 			fingers_idx.push_back(finger_idx);
 		}
 	}
+
+	imshow("Threshold", threshold_output);
 	return fingers_idx;
 }
 
 bool FindHull::is_finger_point_idx(int idx) {
 	bool is_fp_idx = true;
+	Point p = approx_contour[idx];
+	Point d = p - circle_center;
 	float kc = k_curvature(idx, 1, approx_contour)*180/CV_PI;
-	if ( kc > 75) {
-		is_fp_idx = false;
+	if ( kc > 65) {
+		is_fp_idx = false; 
+	} 
+	else if (sqrt(d.dot(d)) > 4.0f*circle_radius) {
+		is_fp_idx = false; // too far away from palm
 	}
-	else {
-		int test = 0;
-	}
+
+	putText(threshold_output, to_string(kc), approx_contour[idx], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1, 1);
+
 	return is_fp_idx;
 }
 
