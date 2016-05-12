@@ -27,9 +27,10 @@ void remove_background();
 // draw_circles and required variable(s)
 void draw_circles(FindHull, double opacity);
 double opacity = 0.9;
+void draw_numbers(FindHull o, double opacity);
 int main()
 {
-	cv::VideoCapture cap{ 0 };
+	cv::VideoCapture cap{ 0};
 	if (!cap.isOpened()) {
 		throw std::runtime_error{ "Could not open VideoCapture" };
 	}
@@ -76,6 +77,7 @@ int main()
 
 		if (hull.contours.size() > 0) {
 			draw_circles(hull, opacity);
+			draw_numbers(hull, opacity);
 			imshow("Circles", frame);
 		}
 	}
@@ -118,7 +120,6 @@ void draw_circles(FindHull o, double opacity)
 	//circle(frame,center,radius,Scalar(255, 255, 255,0.5),thickness,lineType);
 	for (int j = 0; j < o.approx_hull.size(); j++) {
 		circle(overlay, o.approx_hull[j], radius, Scalar(255, 255, 255), thickness, lineType);
-		line(overlay, o.circle_center, o.approx_hull[j], Scalar(0, 255, 255), 5, 8, 0);
 	}
 	for (int j = 0; j < o.approx_defects.size(); j++) {
 		Vec4i defect = o.approx_defects[j];
@@ -141,8 +142,31 @@ void draw_circles(FindHull o, double opacity)
 		circle(overlay, p, 2, Scalar(0, 0, 255), thickness, lineType);
 		int test2 = 0;
 	}
+	for (int i = 0; i < o.fingers_idx.size(); i++) {
+
+		line(overlay, o.circle_center, o.approx_contour[o.fingers_idx[i]], Scalar(0, 255, 255), 5, 8, 0);
+		circle(overlay, o.approx_contour[o.fingers_idx[i]], radius * 3, Scalar(255, 0, 0), thickness, lineType);
+	}
+	//int thumb_index = o.find_thumb();
+	//circle(overlay, o.approx_contour[thumb_index], radius*3, Scalar(255, 255, 255), thickness, lineType);
+
+
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 
+}
+
+void draw_numbers(FindHull o, double opacity) {
+
+	int lineType = 1;
+	Mat overlay = frame.clone();
+	for (int j = 0; j < o.fingers_idx.size(); j++) {
+		putText(overlay, to_string(j+1), o.approx_contour[o.fingers_idx[j]], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
+		
+	}
+	putText(overlay, to_string(o.fingers_idx.size()), Point(50,50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
+
+
+	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 }
 
 
