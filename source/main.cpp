@@ -36,7 +36,6 @@ void draw_numbers(FindHull o, double opacity);
 bool is_finger_gun(FindHull o);
 int main()
 {
-	cv::VideoCapture cap{ 0};
 	if (!cap.isOpened()) {
 		throw std::runtime_error{ "Could not open VideoCapture" };
 	}
@@ -158,7 +157,7 @@ void draw_circles(FindHull o, double opacity)
 	//circle(overlay, o.approx_contour[thumb_index], radius*3, Scalar(255, 255, 255), thickness, lineType);
 	vector<vector<Point> > contourVec;
 	contourVec.push_back(o.approx_contour);
-	drawContours(overlay, contourVec, 0, Scalar(0, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
+	//drawContours(overlay, contourVec, 0, Scalar(0, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
 
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 
