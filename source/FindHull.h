@@ -1,5 +1,6 @@
 #pragma once
 #include "opencv2/opencv.hpp"
+#include "SkinSegmentation.h"
 
 using namespace cv;
 using namespace std;
@@ -10,7 +11,11 @@ private:
 	Mat threshold_output;
 
 	vector<Vec4i> hierarchy;
-	int largest_C_area = 0;
+
+	vector<Rect > faces;
+	SkinSegmentation ss;
+
+	int largest_C_area  = 0;
 	int largest_C_index = 0;
 	bool is_finger_point_idx(int idx);
 	float k_curvature(int idx, int k, vector<Point> contour);
@@ -35,7 +40,7 @@ public:
 	vector < int> find_finger_points(vector <int> approx_hull_idx);
 	vector<int> fingers_idx;
 	Mat drawing;
-	void thresh_callback(Mat, int, bool);
+	void thresh_callback(Mat, int, bool, bool);
 	int find_thumb();
 
 	//constructor

@@ -1,24 +1,39 @@
 #include "FindHull.h"
-
+#include "SkinSegmentation.h"
 // defualt constructor
 FindHull::FindHull()
 {
+
+	ss = SkinSegmentation();
 }
 
-void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool use_otsu)
+void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool use_otsu, bool skin_segmentation)
 {
 	// Blurring removed_background
-	blur(background_removed, background_removed, Size(3, 3));
-
-	if (!use_otsu) {
-		// Detect edges using Threshold, with trackbar values.
-		threshold(background_removed, threshold_output, thresh_val, 255, THRESH_BINARY);
-	}
-	else
+	if (skin_segmentation)
 	{
-		// Detect edges using Threshold
-		threshold(background_removed, threshold_output, 0, 255, THRESH_OTSU);
+		Mat frame_gray;
+		cv::cvtColor(background_removed, frame_gray, COLOR_BGR2GRAY);
+		threshold_output = cv::Mat(frame_gray.size(), CV_8U);
+		ss.skin_segmentation(background_removed,  threshold_output);
+
+		ss.find_faces(frame_gray, faces);
+		ss.delete_faces( threshold_output,  threshold_output, faces, true);
+
 	}
+	else {
+		blur(background_removed, background_removed, Size(3, 3));
+		if (!use_otsu) {
+			// Detect edges using Threshold, with trackbar values.
+			threshold(background_removed, threshold_output, thresh_val, 255, THRESH_BINARY);
+		}
+		else
+		{
+			// Detect edges using Threshold
+			threshold(background_removed, threshold_output, 0, 255, THRESH_OTSU);
+		}
+	}
+	
 	
 	imshow("Threshold", threshold_output);
 

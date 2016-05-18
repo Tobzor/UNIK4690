@@ -16,7 +16,7 @@ bool background_found = false;
 bool displayContour = false;
 bool displayBackground = true;
 bool use_otsu = true;
-
+bool skin_segmentation = true;
 // Variables
 int thresh_val;
 float gun_count;
@@ -36,6 +36,7 @@ void draw_numbers(FindHull o, double opacity);
 bool is_finger_gun(FindHull o);
 int main()
 {
+	cv::VideoCapture cap{0};
 	if (!cap.isOpened()) {
 		throw std::runtime_error{ "Could not open VideoCapture" };
 	}
@@ -60,25 +61,29 @@ int main()
 		toggles(key); // keyboard controls
 		flip(frame, frame, 180); // flipping frame for convenience
 		cv::cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
-
-		// "Space" pressed --> removing background
-		if (background_found) {
-			remove_background();
-			hull.thresh_callback(removed_background, thresh_val, use_otsu);
-			imshow("Background removed", removed_background);
-		}
-		// "t" key pressed == displaying contours instead of frame.
-		if (displayContour) {
-			// If background is not set - threshold with gray_frame instead.
-
-			if (!background_found) {
-				hull.thresh_callback(gray_frame, thresh_val, use_otsu);
-			}
-			// display contour in "Input"
-			imshow("Input", hull.drawing);
+		if (skin_segmentation) {
+			hull.thresh_callback(frame, 0, use_otsu, true);
 		}
 		else {
-			imshow("Input", frame);
+			// "Space" pressed --> removing background
+			if (background_found) {
+				remove_background();
+				hull.thresh_callback(removed_background, thresh_val, use_otsu, false);
+				imshow("Background removed", removed_background);
+			}
+			// "t" key pressed == displaying contours instead of frame.
+			if (displayContour) {
+				// If background is not set - threshold with gray_frame instead.
+
+				if (!background_found) {
+					hull.thresh_callback(gray_frame, thresh_val, use_otsu, false);
+				}
+				// display contour in "Input"
+				imshow("Input", hull.drawing);
+			}
+			else {
+				imshow("Input", frame);
+			}
 		}
 
 		if (hull.contours.size() > 0) {
@@ -100,6 +105,9 @@ void toggles(char key)
 	}
 	if (key == 'o') {
 		use_otsu = !use_otsu;
+	}
+	if (key == 's') {
+		skin_segmentation != false;
 	}
 }
 
