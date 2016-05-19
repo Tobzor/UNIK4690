@@ -3,8 +3,8 @@
 // defualt constructor
 FindHull::FindHull()
 {
-	cv::namedWindow("Adjust segmentation");
 	ss = SkinSegmentation();
+	cv::namedWindow("Adjust segmentation");
 }
 
 void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool use_otsu, bool skin_segmentation)
@@ -81,6 +81,7 @@ void FindHull::shape_analysis(Mat threshold_output) {
 	} // end of largest contour search
 	approx_contour.resize(contours[largest_C_index].size());
 	semi_approx_contour;
+//	approxPolyDP(Mat(contours[largest_C_index]), semi_approx_contour, 2, true);
 	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 20, true);
 	convexHull(Mat(approx_contour), approx_hull, false);
 	vector<int> approx_inthull(contours[largest_C_index].size());
