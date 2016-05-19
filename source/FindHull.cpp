@@ -3,7 +3,7 @@
 // defualt constructor
 FindHull::FindHull()
 {
-
+	cv::namedWindow("Adjust segmentation");
 	ss = SkinSegmentation();
 }
 
@@ -33,13 +33,14 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 			threshold(background_removed, threshold_output, 0, 255, THRESH_OTSU);
 		}
 	}
-	
-	
+
+	shape_analysis(threshold_output);
+}
+void FindHull::shape_analysis(Mat threshold_output) {
 	imshow("Threshold", threshold_output);
 
 	/// Find contours
 	findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-
 
 	if (contours.size() <= 0) return;
 	/// Find the convex hull object for each contour
@@ -79,6 +80,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 		}
 	} // end of largest contour search
 	approx_contour.resize(contours[largest_C_index].size());
+	semi_approx_contour;
 	approxPolyDP(Mat(contours[largest_C_index]), approx_contour, 20, true);
 	convexHull(Mat(approx_contour), approx_hull, false);
 	vector<int> approx_inthull(contours[largest_C_index].size());
@@ -86,16 +88,43 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 	convexHull(Mat(approx_contour), approx_inthull, false);
 	convexityDefects(approx_contour, approx_inthull, approx_defects);
 	fingers_idx.clear();
-	fingers_idx = find_finger_points(approx_inthull);
+	//fingers_idx = find_finger_points(approx_inthull);
+	fingers_idx = find_finger_points2(semi_approx_contour);
 	// Find bounding rectangle, simplified contour and max inscribed circle
 	// for largest contours
 	boundRect = boundingRect(contours[largest_C_index]);
 	minEnclosingCircle(contours[largest_C_index], bound_circle_center, bound_circle_radius);
 
-	float dist;
+	find_circle();
+
+	RNG rng(12345);
+	Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+	// Scalar colorBlue = Scalar(255, 0, 0);
+	// Scalar colorRed = Scalar(0, 0, 255);
+
+	// Draw contours + hull results in this mat.
+	drawing = Mat::zeros(threshold_output.size(), CV_8UC3);
+
+	// Checks if there are contours, then draws these into drawing
+	if (contours.size() > 0) {
+		drawContours(drawing, contours, largest_C_index, color, 2, 8, vector<Vec4i>(), 0, Point());
+		drawContours(drawing, hull, largest_C_index, color, 2, 8, vector<Vec4i>(), 0, Point());
+	}
+
+	curv_below_t_idx.clear();
+	curvature = k_curvature(approx_contour, curv_below_t_idx, 1, 65 * CV_PI / 180);
+	int test = 0;
+	/* This loop draws every contour.
+	drawContours(drawing, contours, i, colorBlue, 2, 8, vector<Vec4i>(), 0, Point());
+	for (int i = 0; i < contours.size(); i++)
+	{
+	drawContours(drawing, hull, i, colorRed, 2, 8, vector<Vec4i>(), 0, Point());
+	}
+	*/
+}
+void FindHull::find_circle() {
 	circle_radius = -1;
-	Point currentPoint;
-	int stepsize = 40;
+	float dist; Point currentPoint; int stepsize = 40;
 	for (int k = 0.25*boundRect.width; k < 0.75*boundRect.width; k = k + stepsize)
 	{
 		for (int l = 0.25*boundRect.height; l < 0.75*boundRect.height; l = l + stepsize)
@@ -114,7 +143,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 	{
 		for (int l = cc.y - 0.5*stepsize; l < cc.y + 0.5*stepsize; l++)
 		{
-			currentPoint = Point(k,l);
+			currentPoint = Point(k, l);
 			dist = pointPolygonTest(contours[largest_C_index], currentPoint, true);
 			if (dist > circle_radius)
 			{
@@ -124,30 +153,11 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 		}
 	}
 
-	RNG rng(12345);
-	Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
-	// Scalar colorBlue = Scalar(255, 0, 0);
-	// Scalar colorRed = Scalar(0, 0, 255);
-
-	// Draw contours + hull results in this mat.
-	drawing = Mat::zeros(threshold_output.size(), CV_8UC3);
-
-	// Checks if there are contours, then draws these into drawing
-	if (contours.size() > 0) {
-		drawContours(drawing, contours, largest_C_index, color, 2, 8, vector<Vec4i>(), 0, Point());
-		drawContours(drawing, hull, largest_C_index, color, 2, 8, vector<Vec4i>(), 0, Point());
-	}
-	
-	curv_below_t_idx.clear();
-	curvature = k_curvature(approx_contour, curv_below_t_idx,1,  65*CV_PI/180);
-	int test = 0;
-	/* This loop draws every contour.
-		drawContours(drawing, contours, i, colorBlue, 2, 8, vector<Vec4i>(), 0, Point());
-	for (int i = 0; i < contours.size(); i++)
-	{
-		drawContours(drawing, hull, i, colorRed, 2, 8, vector<Vec4i>(), 0, Point());
-	}
-	*/
+}
+void FindHull::draw_contour(Mat& drawing,vector<Point> contour, Scalar color){
+	vector <vector<Point>> contours;
+	contours.push_back(contour);
+	drawContours(drawing, contours, 0, color, 2, 8, vector<Vec4i>(), 0, Point());
 }
 vector<float> FindHull::k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold)
 {
@@ -232,6 +242,22 @@ vector < int> FindHull::find_finger_points(vector <int> approx_hull_idx) {
 			fingers_idx.push_back(finger_idx);
 		}
 	}
+
+	imshow("Threshold", threshold_output);
+	return fingers_idx;
+}
+
+vector < int> FindHull::find_finger_points2(vector <Point> contour) {
+	//vector <int> fingers_idx;
+	//int finger_idx = 0;
+	//int k = 1;
+	//for (int i = 0; i < contour.size(); i++)
+	//{
+	//	finger_idx = approx_hull_idx[i];
+	//	if (is_finger_point_idx(finger_idx)) {
+	//		fingers_idx.push_back(finger_idx);
+	//	}
+	//}
 
 	imshow("Threshold", threshold_output);
 	return fingers_idx;

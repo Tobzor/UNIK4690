@@ -38,11 +38,14 @@ public:
 	vector<float> k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold);
 	float angle_between(Point p0, Point p1, Point p2);
 	vector < int> find_finger_points(vector <int> approx_hull_idx);
-	vector<int> fingers_idx;
+	vector < int> FindHull::find_finger_points2(vector <Point> contour);
+	vector < int> fingers_idx;
 	Mat drawing;
 	void thresh_callback(Mat, int, bool, bool);
 	int find_thumb();
-
+	void draw_contour(Mat& drawing, vector<Point> contour, Scalar color);
+	void find_circle();
+	void shape_analysis(Mat threshold_output);
 	//constructor
 	FindHull();
 	// destructor / deConstructor

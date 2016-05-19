@@ -8,9 +8,9 @@ class SkinSegmentation
 {
 	std::vector< cv::Rect > faces;
 
-	int Y_min = 54; int Y_max = 200;
-	int Cr_min = 140; int Cr_max = 180;
-	int Cb_min = 68; int Cb_max = 136;
+	int Y_min  = 49;  int Y_max = 136;
+	int Cr_min = 148; int Cr_max = 180;
+	int Cb_min =  77; int Cb_max = 136;
 	float Y_range = 150;
 	float Cr_range = 50;
 	float Cb_range = 10;
