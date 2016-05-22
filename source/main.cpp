@@ -213,8 +213,8 @@ void draw_circles(FindHull o, double opacity)
 	for (int j = 0; j < o.semi_approx_inthull.size(); j++) {
 		circle(overlay, o.semi_approx_contour[o.semi_approx_inthull[j]], radius, Scalar(255, 255, 255), thickness, lineType);
 	}
-	//int thumb_index = o.find_thumb();
-	//circle(overlay, o.approx_contour[thumb_index], radius*3, Scalar(255, 255, 255), thickness, lineType);
+	int thumb_index = o.find_thumb();
+	circle(overlay, o.approx_contour[thumb_index], radius*3, Scalar(255, 255, 255), thickness, lineType);
 	vector<vector<Point> > contourVec;
 	contourVec.push_back(o.approx_contour);
 	//drawContours(overlay, contourVec, 0, Scalar(0, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
@@ -236,8 +236,7 @@ void draw_numbers(FindHull o, double opacity) {
 	}
 	putText(overlay, to_string(o.fingers_idx.size()), Point(50,50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
 	//putText(overlay, to_string(gun_count), Point(100, 100), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
-	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame); 
-	return;
+
 	if (is_finger_gun(o)) {
 		if (gun_count > 25) {
 			hasfired = false;
@@ -287,6 +286,9 @@ void draw_numbers(FindHull o, double opacity) {
 		gun_count = 0;
 		hasfired  = false;
 	}
+
+	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
+	return;
 }
 
 bool is_finger_gun(FindHull o) {
@@ -297,10 +299,10 @@ bool is_finger_gun(FindHull o) {
 	int f1_idx  = o.fingers_idx[0];
 	int f2_idx  = o.fingers_idx[1];
 	//int midt_idx = f1_idx + 1;
-	Point p1 = o.approx_contour[f1_idx];
+	Point p1 = o.semi_approx_contour[f1_idx];
 	//Point p2 = o.approx_contour[midt_idx];
 	Point p2 = o.circle_center;
-	Point p3 = o.approx_contour[f2_idx];
+	Point p3 = o.semi_approx_contour[f2_idx];
 	float angle = o.angle_between(p1, p2, p3)*180/CV_PI;
 
 	if ((angle > 100) || (angle < 75)) {

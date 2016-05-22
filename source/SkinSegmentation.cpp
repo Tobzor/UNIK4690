@@ -4,7 +4,7 @@
 
 void SkinSegmentation::skin_segmentation(Mat frame, Mat& output_image) {
 
-	cv::cvtColor(frame, frame, cv::COLOR_BGR2YCrCb);
+	cvtColor(frame, frame, cv::COLOR_BGR2YCrCb);
 
 	createTrackbar("Y min", "Adjust segmentation", &Y_min, 255);
 	createTrackbar("Y max", "Adjust segmentation", &Y_max, 255);
@@ -13,16 +13,16 @@ void SkinSegmentation::skin_segmentation(Mat frame, Mat& output_image) {
 	createTrackbar("Cb min", "Adjust segmentation", &Cb_min, 255);
 	createTrackbar("Cb max", "Adjust segmentation", &Cb_max, 255);
 
-	cv::Scalar skin_min = cv::Scalar(Y_min, Cr_min, Cb_min);
-	cv::Scalar skin_max = cv::Scalar(Y_max, Cr_max, Cb_max);
-	
-	cv::GaussianBlur(frame, blurred_frame, cv::Size(0, 0), 2);
-	cv::inRange(blurred_frame, skin_min, skin_max, output_image);
+	Scalar skin_min = Scalar(Y_min, Cr_min, Cb_min);
+	Scalar skin_max = Scalar(Y_max, Cr_max, Cb_max);
+	Mat frame_blur;
+	GaussianBlur(frame, frame_blur, cv::Size(0, 0), 2);
+	inRange(frame_blur, skin_min, skin_max, output_image);
 
-	cv::morphologyEx(output_image, output_image, cv::MORPH_CLOSE, morph_element_closing);
-	cv::morphologyEx(output_image, output_image, cv::MORPH_OPEN,  morph_element_opening);
+	morphologyEx(output_image, output_image, cv::MORPH_CLOSE, morph_element_closing);
+	morphologyEx(output_image, output_image, cv::MORPH_OPEN,  morph_element_opening);
 
-	cv::cvtColor(frame, frame, cv::COLOR_YCrCb2BGR);
+	cvtColor(frame, frame, cv::COLOR_YCrCb2BGR);
 }
 
 void SkinSegmentation::delete_faces(Mat thresholded_image, Mat& output_image, std::vector< cv::Rect > faces, bool debug = false) {
@@ -66,15 +66,14 @@ void SkinSegmentation::draw_faces(cv::Mat& image, std::vector< cv::Rect >faces) 
 		cv::rectangle(image, r.tl(), r.br(), cv::Scalar(255, 0, 0), 2, 8, 0);
 	}
 }
-
 SkinSegmentation::SkinSegmentation()
 {
+	// Change the path to your openCV/etc/haarcascades folder
 	if (!face_cascade.load("C:/opencv/opencv-vs2015_160317/etc/haarcascades/haarcascade_frontalface_default.xml")) {
 		throw std::runtime_error{ "Could not load cascade classifier" };
 	}
-
 	morph_element_opening = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(4, 4));
-	morph_element_closing = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5));
+	morph_element_closing = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
 }
 
 
