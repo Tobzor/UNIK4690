@@ -220,7 +220,6 @@ void draw_numbers(FindHull o, double opacity) {
 	Mat overlay = frame.clone();
 	for (int j = 0; j < o.fingers_idx.size(); j++) {
 		putText(overlay, to_string(j+1), o.approx_contour[o.fingers_idx[j]], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
-		
 	}
 	putText(overlay, to_string(o.fingers_idx.size()), Point(50,50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
 	//putText(overlay, to_string(gun_count), Point(100, 100), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
