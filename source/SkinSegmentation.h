@@ -16,6 +16,7 @@ class SkinSegmentation
 	float Cb_range = 10;
 	CascadeClassifier face_cascade;
 	Mat morph_element;
+	Mat blurred_frame;
 
 public:
 	SkinSegmentation();

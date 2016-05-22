@@ -14,9 +14,8 @@ Mat background; // used in remove background
 // Booleans
 bool background_found = false;
 bool displayContour = false;
-bool displayBackground = true;
-bool use_otsu = true;
 bool skin_segmentation = true;
+bool debug = false;
 // Variables
 int thresh_val;
 float gun_count;
@@ -27,32 +26,30 @@ bool hasfired = false;
 
 // Function headers
 void toggles(char);
+void drawing();
 void remove_background();
-
 // draw_circles and required variable(s)
 void draw_circles(FindHull, double opacity);
 double opacity = 0.9;
 void draw_numbers(FindHull o, double opacity);
 bool is_finger_gun(FindHull o);
+
+// Objects
+FindHull hull;
 int main()
 {
-
+	cout << "Press i to print the values of the booleans" << endl;
 	cv::VideoCapture cap{0};
 	if (!cap.isOpened()) {
 		throw std::runtime_error{ "Could not open VideoCapture" };
 	}
-	FindHull hull;
 	gun_count++;
 
-	namedWindow("Input"); // either contours + hull or unedited frame
-	namedWindow("Background removed"); // active when background is removed
-	namedWindow("Threshold"); // active when thresholding (any frame)
-	namedWindow("Circles"); // Used for displaying circles and stuff
-
+	namedWindow("Adjust segmentation");
 	// Trackbar to be used when otsu is overreacting
 	thresh_val = 240,
 
-		createTrackbar("Threshold", "Threshold", &thresh_val, 255);
+		createTrackbar("Threshold", "Adjust segmentation", &thresh_val, 255);
 
 
 	char key;
@@ -63,40 +60,70 @@ int main()
 		flip(frame, frame, 180); // flipping frame for convenience
 		cv::cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
 		if (skin_segmentation) {
-			hull.thresh_callback(frame, 0, use_otsu, true);
+			hull.thresh_callback(frame, 0);
+			// If contours exists draw circles/numbers
+			drawing();
+			// Activates Debug face removal window if debug is true
+			if (debug) {
+				hull.debug = true;
+			}
 		}
-		else {
-			// "Space" pressed --> removing background
-			if (background_found) {
-				remove_background();
-				hull.thresh_callback(removed_background, thresh_val, use_otsu, false);
+		// "Space" pressed --> removing background
+		else if (!skin_segmentation && background_found) {
+			remove_background();
+			hull.thresh_callback(removed_background, thresh_val);
+			// If contours exists draw circles/numbers
+			drawing();
+			// Activate Background removed window if debug is true
+			if (debug) {
 				imshow("Background removed", removed_background);
 			}
-			// "t" key pressed == displaying contours instead of frame.
 			if (displayContour) {
-				// If background is not set - threshold with gray_frame instead.
-
-				if (!background_found) {
-					hull.thresh_callback(gray_frame, thresh_val, use_otsu, false);
-				}
-				// display contour in "Input"
 				imshow("Input", hull.drawing);
 			}
-			else {
-				imshow("Input", frame);
+		}
+		// "t" key pressed == displaying contours instead of frame.
+		else if (!skin_segmentation && displayContour) {
+			// If background is not set - threshold with gray_frame instead.
+			if (!background_found) {
+				hull.thresh_callback(gray_frame, thresh_val);
+				drawing();
 			}
+			// display contour in "Input"
+			imshow("Input", hull.drawing);
 		}
+		// When skin_segmentation, background_found and displayContour are false
+		else
+		{
+			imshow("Input", frame);
+		}
+	}
+}
 
-		if (hull.contours.size() > 0) {
-			draw_circles(hull, opacity);
-			draw_numbers(hull, opacity);
-			imshow("Circles", frame);
-		}
+void drawing() 
+{
+	if (hull.contours.size() > 0) {
+		draw_circles(hull, opacity);
+		draw_numbers(hull, opacity);
+		imshow("Input", frame);
+	}
+	else
+	{
+		imshow("Input", frame);
 	}
 }
 
 void toggles(char key)
 {
+	if (key == 'i') {
+		cout << "##############################" << endl;
+		cout << "The values of the booleans are:" << endl;
+		cout << boolalpha << "background_found: " << background_found << endl;
+		cout << "displayContour: " << displayContour << endl;
+		cout << "skin_segmentation: " << skin_segmentation << endl;
+		cout << "debug: " << debug << endl;
+		cout << "##############################" << endl;
+	}
 	if (key == ' ') {
 		background = gray_frame;
 		background_found = !background_found;
@@ -105,10 +132,21 @@ void toggles(char key)
 		displayContour = !displayContour;
 	}
 	if (key == 'o') {
-		use_otsu = !use_otsu;
+		hull.use_otsu = !hull.use_otsu;
 	}
 	if (key == 's') {
-		skin_segmentation != false;
+		skin_segmentation = !skin_segmentation;
+		hull.skin_segmentation = !hull.skin_segmentation;
+	}
+	if (key == 'd') {
+		debug = !debug;
+		hull.debug = !hull.debug;
+		if (!debug) {
+			destroyWindow("Input");
+			destroyWindow("Background removed");
+			destroyWindow("Threshold");
+			destroyWindow("Debug face deletion");
+		}
 	}
 }
 

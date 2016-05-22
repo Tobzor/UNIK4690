@@ -4,10 +4,9 @@
 FindHull::FindHull()
 {
 	ss = SkinSegmentation();
-	cv::namedWindow("Adjust segmentation");
 }
 
-void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool use_otsu, bool skin_segmentation)
+void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val)
 {
 	// Blurring removed_background
 	if (skin_segmentation)
@@ -18,7 +17,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 		ss.skin_segmentation(background_removed,  threshold_output);
 
 		ss.find_faces(frame_gray, faces);
-		ss.delete_faces( threshold_output,  threshold_output, faces, true);
+		ss.delete_faces( threshold_output,  threshold_output, faces, debug);
 
 	}
 	else {
@@ -37,8 +36,10 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 	shape_analysis(threshold_output);
 }
 void FindHull::shape_analysis(Mat threshold_output) {
-	imshow("Threshold", threshold_output);
-
+	
+	if (debug) {
+		imshow("Threshold", threshold_output);
+	}
 	/// Find contours
 	findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 
@@ -244,7 +245,9 @@ vector < int> FindHull::find_finger_points(vector <int> approx_hull_idx) {
 		}
 	}
 
-	imshow("Threshold", threshold_output);
+	if (debug) {
+		imshow("Threshold", threshold_output);
+	}
 	return fingers_idx;
 }
 
@@ -259,8 +262,9 @@ vector < int> FindHull::find_finger_points2(vector <Point> contour) {
 	//		fingers_idx.push_back(finger_idx);
 	//	}
 	//}
-
-	imshow("Threshold", threshold_output);
+	if (debug) {
+		imshow("Threshold", threshold_output);
+	}
 	return fingers_idx;
 }
 
