@@ -231,15 +231,14 @@ int FindHull::find_thumb() {
 		Vec4i defect = approx_defects[i];
 		Point start  = approx_contour[defect[0]];
 		Point stop   = approx_contour[defect[1]];
-		Point d = start - stop;
 
 		float depth = defect[3]/256.0;
-		float width = sqrt((d).dot(d));
+		float width = point_distance(start, stop);
 
 		current_area = 0.5*depth*width;
 
 		if (current_area > max_area) {
-			thumb_index = defect[0];
+			thumb_index = defect[1];
 			max_area = current_area;
 		}
 
@@ -319,7 +318,7 @@ int FindHull::best_local_finger_point_idx(int idx, vector <Point> contours) {
 			}
 		}
 	}
-	if (lowest_kc > 75) {
+	if (lowest_kc > 90) {
 		// no valid fingerpoint was found
 		best_idx = -1;
 	}
