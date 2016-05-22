@@ -8,19 +8,20 @@ class SkinSegmentation
 {
 	std::vector< cv::Rect > faces;
 
-	int Y_min  = 49;  int Y_max = 136;
-	int Cr_min = 148; int Cr_max = 180;
-	int Cb_min =  77; int Cb_max = 136;
+	int Y_min  =  24; int Y_max  = 255;
+	int Cr_min = 136; int Cr_max = 187;
+	int Cb_min =  86; int Cb_max = 142;
 	float Y_range = 150;
 	float Cr_range = 50;
 	float Cb_range = 10;
 	CascadeClassifier face_cascade;
-	Mat morph_element;
+	Mat morph_element_opening, morph_element_closing;
+
+	Mat tmp;
 
 public:
 	SkinSegmentation();
 	~SkinSegmentation();
-
 
 	void find_faces(cv::Mat image, std::vector< cv::Rect >& faces, cv::CascadeClassifier face_cascade);
 	void find_faces(cv::Mat image, std::vector< cv::Rect >& faces);
