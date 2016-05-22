@@ -15,12 +15,12 @@ void SkinSegmentation::skin_segmentation(Mat frame, Mat& output_image) {
 
 	cv::Scalar skin_min = cv::Scalar(Y_min, Cr_min, Cb_min);
 	cv::Scalar skin_max = cv::Scalar(Y_max, Cr_max, Cb_max);
+	
 	cv::GaussianBlur(frame, blurred_frame, cv::Size(0, 0), 2);
-
 	cv::inRange(blurred_frame, skin_min, skin_max, output_image);
 
-	cv::morphologyEx(output_image, output_image, cv::MORPH_CLOSE, morph_element);
-	cv::morphologyEx(output_image, output_image, cv::MORPH_OPEN,  morph_element);
+	cv::morphologyEx(output_image, output_image, cv::MORPH_CLOSE, morph_element_closing);
+	cv::morphologyEx(output_image, output_image, cv::MORPH_OPEN,  morph_element_opening);
 
 	cv::cvtColor(frame, frame, cv::COLOR_YCrCb2BGR);
 }
@@ -73,7 +73,8 @@ SkinSegmentation::SkinSegmentation()
 		throw std::runtime_error{ "Could not load cascade classifier" };
 	}
 
-	morph_element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
+	morph_element_opening = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(4, 4));
+	morph_element_closing = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5));
 }
 
 
