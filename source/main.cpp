@@ -14,7 +14,7 @@ Mat background; // used in remove background
 // Booleans
 bool background_found = false;
 bool displayContour = false;
-bool skin_segmentation = true;
+bool skin_segmentation = false;
 bool debug = false;
 // Variables
 int thresh_val;
@@ -65,7 +65,7 @@ int main()
 			drawing();
 			// Activates Debug face removal window if debug is true
 			if (debug) {
-				hull.debug = true;
+				hull.debug_face = true;
 			}
 		}
 		// "Space" pressed --> removing background
@@ -116,12 +116,13 @@ void drawing()
 void toggles(char key)
 {
 	if (key == 'i') {
-		cout << "##############################" << endl;
+		cout << boolalpha << "##############################" << endl;
 		cout << "The values of the booleans are:" << endl;
-		cout << boolalpha << "background_found: " << background_found << endl;
-		cout << "displayContour: " << displayContour << endl;
-		cout << "skin_segmentation: " << skin_segmentation << endl;
-		cout << "debug: " << debug << endl;
+		cout << "background_found: " << background_found << "\n" << "Press 'Space' to toggle." << endl;
+		cout << "\n" << "displayContour: " << displayContour << "\n" << "Press 't' to toggle." << endl;
+		cout << "\n" << "use_otsu: " << hull.use_otsu << "\n" << "Press 'o' to toggle." << endl;
+		cout << "\n" << "skin_segmentation: " << skin_segmentation << "\n" << "Press 's' to toggle." << endl;
+		cout << "\n" << "debug: " << debug << "\n" << "Press 'd' to toggle."<< endl;
 		cout << "##############################" << endl;
 	}
 	if (key == ' ') {
@@ -140,7 +141,10 @@ void toggles(char key)
 	}
 	if (key == 'd') {
 		debug = !debug;
-		hull.debug = !hull.debug;
+		hull.debug_face = !hull.debug_face;
+		if (displayContour || background_found) {
+			hull.debug_thresh = !hull.debug_thresh;
+		}
 		if (!debug) {
 			destroyWindow("Input");
 			destroyWindow("Background removed");

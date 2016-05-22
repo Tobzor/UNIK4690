@@ -17,7 +17,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val)
 		ss.skin_segmentation(background_removed,  threshold_output);
 
 		ss.find_faces(frame_gray, faces);
-		ss.delete_faces( threshold_output,  threshold_output, faces, debug);
+		ss.delete_faces( threshold_output,  threshold_output, faces, debug_face);
 
 	}
 	else {
@@ -37,7 +37,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val)
 }
 void FindHull::shape_analysis(Mat threshold_output) {
 	
-	if (debug) {
+	if (debug_thresh) {
 		imshow("Threshold", threshold_output);
 	}
 	/// Find contours
@@ -227,8 +227,6 @@ int FindHull::find_thumb() {
 			thumb_index = defect[0];
 			max_area = current_area;
 		}
-
-
 	}
 	return thumb_index;
 }
@@ -245,7 +243,7 @@ vector < int> FindHull::find_finger_points(vector <int> approx_hull_idx) {
 		}
 	}
 
-	if (debug) {
+	if (debug_thresh) {
 		imshow("Threshold", threshold_output);
 	}
 	return fingers_idx;
@@ -262,7 +260,7 @@ vector < int> FindHull::find_finger_points2(vector <Point> contour) {
 	//		fingers_idx.push_back(finger_idx);
 	//	}
 	//}
-	if (debug) {
+	if (debug_thresh) {
 		imshow("Threshold", threshold_output);
 	}
 	return fingers_idx;

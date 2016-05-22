@@ -47,10 +47,10 @@ public:
 	void find_circle();
 	void shape_analysis(Mat threshold_output);
 
-	bool skin_segmentation = true;
-	bool use_otsu = true;
-	bool debug = false;
-
+	bool skin_segmentation = false;
+	bool use_otsu = false;
+	bool debug_face = false;
+	bool debug_thresh = false;
 	//constructor
 	FindHull();
 	// destructor / deConstructor
