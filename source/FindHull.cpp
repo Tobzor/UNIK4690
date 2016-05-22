@@ -241,8 +241,6 @@ int FindHull::find_thumb() {
 			thumb_index = defect[1];
 			max_area = current_area;
 		}
-
-
 	}
 	return thumb_index;
 }
@@ -252,6 +250,7 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 	vector <int> fingers_idx;
 	int finger_idx = 0; int k = 0;
 	vector <int> tmp_fingers_idx;
+	vector <int> gap_idx;
 
 	for (int i = 0; i < defects.size(); i++)
 	{
@@ -262,6 +261,8 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 				k++;
 			}
 			tmp_fingers_idx.push_back(defect[1]);
+
+			gap_idx.push_back(defect[2]);
 			k++;
 		}
 	}
