@@ -14,9 +14,8 @@ Mat background; // used in remove background
 // Booleans
 bool background_found = false;
 bool displayContour = false;
-bool displayBackground = true;
-bool use_otsu = true;
-
+bool skin_segmentation = false;
+bool debug = false;
 // Variables
 int thresh_val;
 float gun_count;
@@ -27,32 +26,30 @@ bool hasfired = false;
 
 // Function headers
 void toggles(char);
+void drawing();
 void remove_background();
-
 // draw_circles and required variable(s)
 void draw_circles(FindHull, double opacity);
 double opacity = 0.9;
 void draw_numbers(FindHull o, double opacity);
 bool is_finger_gun(FindHull o);
+
+// Objects
+FindHull hull;
 int main()
 {
-	cv::VideoCapture cap{ 0};
+	cout << "Press i to print the values of the booleans" << endl;
+	cv::VideoCapture cap{0};
 	if (!cap.isOpened()) {
 		throw std::runtime_error{ "Could not open VideoCapture" };
 	}
-	FindHull hull;
 	gun_count++;
 
-	namedWindow("Input"); // either contours + hull or unedited frame
-	namedWindow("Background removed"); // active when background is removed
-	namedWindow("Threshold"); // active when thresholding (any frame)
-	namedWindow("Circles"); // Used for displaying circles and stuff
-
+	namedWindow("Adjust segmentation");
 	// Trackbar to be used when otsu is overreacting
 	thresh_val = 240,
 
-		createTrackbar("Threshold", "Threshold", &thresh_val, 255);
-
+		createTrackbar("Threshold", "Adjust segmentation", &thresh_val, 255);
 
 	char key;
 	while ((key = cv::waitKey(30)) != 27) // while loop exits on "esc" press.
@@ -61,37 +58,73 @@ int main()
 		toggles(key); // keyboard controls
 		flip(frame, frame, 180); // flipping frame for convenience
 		cv::cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
-
+		if (skin_segmentation) {
+			hull.thresh_callback(frame, 0);
+			// If contours exists draw circles/numbers
+			drawing();
+			// Activates Debug face removal window if debug is true
+			if (debug) {
+				hull.debug_face = true;
+			}
+		}
 		// "Space" pressed --> removing background
-		if (background_found) {
+		else if (!skin_segmentation && background_found) {
 			remove_background();
-			hull.thresh_callback(removed_background, thresh_val, use_otsu);
-			imshow("Background removed", removed_background);
+			hull.thresh_callback(removed_background, thresh_val);
+			// If contours exists draw circles/numbers
+			drawing();
+			// Activate Background removed window if debug is true
+			if (debug) {
+				imshow("Background removed", removed_background);
+			}
+			if (displayContour) {
+				imshow("Input", hull.drawing);
+			}
 		}
 		// "t" key pressed == displaying contours instead of frame.
-		if (displayContour) {
+		else if (!skin_segmentation && displayContour) {
 			// If background is not set - threshold with gray_frame instead.
-
 			if (!background_found) {
-				hull.thresh_callback(gray_frame, thresh_val, use_otsu);
+				hull.thresh_callback(gray_frame, thresh_val);
+				drawing();
 			}
 			// display contour in "Input"
 			imshow("Input", hull.drawing);
 		}
-		else {
+		// When skin_segmentation, background_found and displayContour are false
+		else
+		{
 			imshow("Input", frame);
 		}
+	}
+}
 
-		if (hull.contours.size() > 0) {
-			draw_circles(hull, opacity);
-			draw_numbers(hull, opacity);
-			imshow("Circles", frame);
-		}
+void drawing() 
+{
+	if (hull.contours.size() > 0) {
+		draw_circles(hull, opacity);
+		draw_numbers(hull, opacity);
+		imshow("Input", frame);
+	}
+	else
+	{
+		imshow("Input", frame);
 	}
 }
 
 void toggles(char key)
 {
+	if (key == 'i') {
+		cout << boolalpha << "##############################" << endl;
+		cout << "The values of the booleans are:" << endl;
+		cout << "background_found: " << background_found << "\n" << "Press 'Space' to toggle." << endl;
+		cout << "\n" << "displayContour: " << displayContour << "\n" << "Press 't' to toggle." << endl;
+		cout << "\n" << "use_otsu: " << hull.use_otsu << "\n" << "Press 'o' to toggle." << endl;
+		cout << "\n" << "skin_segmentation: " << skin_segmentation << "\n" << "Press 's' to toggle." << endl;
+		cout << "\n" << "debug: " << debug << "\n" << "Press 'd' to toggle."<< endl;
+		cout << "\n" << "debug curvature: " << hull.debug_curv << "\n" << "Press 'k' to toggle." << endl;
+		cout << "##############################" << endl;
+	}
 	if (key == ' ') {
 		background = gray_frame;
 		background_found = !background_found;
@@ -100,7 +133,30 @@ void toggles(char key)
 		displayContour = !displayContour;
 	}
 	if (key == 'o') {
-		use_otsu = !use_otsu;
+		hull.use_otsu = !hull.use_otsu;
+	}
+	if (key == 's') {
+		skin_segmentation = !skin_segmentation;
+		hull.skin_segmentation = !hull.skin_segmentation;
+	}
+	if (key == 'k') {
+		hull.debug_curv = !hull.debug_curv;
+		if (!hull.debug_curv) {
+			destroyWindow("K-curvature");
+		}
+	}
+	if (key == 'd') {
+		debug = !debug;
+		hull.debug_face = !hull.debug_face;
+		if (displayContour || background_found) {
+			hull.debug_thresh = !hull.debug_thresh;
+		}
+		if (!debug) {
+			destroyWindow("Input");
+			destroyWindow("Background removed");
+			destroyWindow("Threshold");
+			destroyWindow("Debug face deletion");
+		}
 	}
 }
 
@@ -151,16 +207,23 @@ void draw_circles(FindHull o, double opacity)
 	}
 	for (int i = 0; i < o.fingers_idx.size(); i++) {
 
-		line(overlay, o.circle_center, o.approx_contour[o.fingers_idx[i]], Scalar(0, 255, 255), 5, 8, 0);
-		circle(overlay, o.approx_contour[o.fingers_idx[i]], radius * 3, Scalar(255, 0, 0), thickness, lineType);
+		line(overlay, o.circle_center, o.semi_approx_contour[o.fingers_idx[i]], Scalar(0, 255, 255), 5, 8, 0);
+		circle(overlay, o.semi_approx_contour[o.fingers_idx[i]], radius * 3, Scalar(255, 0, 0), thickness, lineType);
 	}
-	//int thumb_index = o.find_thumb();
-	//circle(overlay, o.approx_contour[thumb_index], radius*3, Scalar(255, 255, 255), thickness, lineType);
+	for (int j = 0; j < o.semi_approx_inthull.size(); j++) {
+		circle(overlay, o.semi_approx_contour[o.semi_approx_inthull[j]], radius, Scalar(255, 255, 255), thickness, lineType);
+	}
+	int thumb_index = o.find_thumb();
+	circle(overlay, o.approx_contour[thumb_index], radius*3, Scalar(255, 255, 255), thickness, lineType);
 	vector<vector<Point> > contourVec;
 	contourVec.push_back(o.approx_contour);
-	drawContours(overlay, contourVec, 0, Scalar(0, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
-
+	//drawContours(overlay, contourVec, 0, Scalar(0, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
+	o.draw_contour(overlay, o.semi_approx_contour,Scalar(0,0,255));
+	for (int j = 0; j < o.semi_approx_contour.size(); j++) {
+		circle(overlay, o.semi_approx_contour[j], 1, Scalar(0, 0, 0), thickness, lineType);
+	}
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
+
 
 }
 
@@ -169,11 +232,11 @@ void draw_numbers(FindHull o, double opacity) {
 	int lineType = 1;
 	Mat overlay = frame.clone();
 	for (int j = 0; j < o.fingers_idx.size(); j++) {
-		putText(overlay, to_string(j+1), o.approx_contour[o.fingers_idx[j]], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
-		
+		putText(overlay, to_string(j+1), o.semi_approx_contour[o.fingers_idx[j]], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
 	}
 	putText(overlay, to_string(o.fingers_idx.size()), Point(50,50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
 	//putText(overlay, to_string(gun_count), Point(100, 100), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
+
 	if (is_finger_gun(o)) {
 		if (gun_count > 25) {
 			hasfired = false;
@@ -188,8 +251,8 @@ void draw_numbers(FindHull o, double opacity) {
 			}
 			else {
 				hasfired = true;
-				Point p1 = o.approx_contour[o.fingers_idx[0]];
-				Point p2 = o.approx_contour[o.fingers_idx[1]];
+				Point p1 = o.semi_approx_contour[o.fingers_idx[0]];
+				Point p2 = o.semi_approx_contour[o.fingers_idx[1]];
 				Point d1 = p1 - o.circle_center;
 				Point d2 = p2 - o.circle_center;
 				Point d;
@@ -223,7 +286,9 @@ void draw_numbers(FindHull o, double opacity) {
 		gun_count = 0;
 		hasfired  = false;
 	}
+
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
+	return;
 }
 
 bool is_finger_gun(FindHull o) {
@@ -234,10 +299,10 @@ bool is_finger_gun(FindHull o) {
 	int f1_idx  = o.fingers_idx[0];
 	int f2_idx  = o.fingers_idx[1];
 	//int midt_idx = f1_idx + 1;
-	Point p1 = o.approx_contour[f1_idx];
+	Point p1 = o.semi_approx_contour[f1_idx];
 	//Point p2 = o.approx_contour[midt_idx];
 	Point p2 = o.circle_center;
-	Point p3 = o.approx_contour[f2_idx];
+	Point p3 = o.semi_approx_contour[f2_idx];
 	float angle = o.angle_between(p1, p2, p3)*180/CV_PI;
 
 	if ((angle > 100) || (angle < 75)) {
