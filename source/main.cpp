@@ -37,7 +37,7 @@ bool is_finger_gun(FindHull o);
 int main()
 {
 
-	cv::VideoCapture cap{0};
+	cv::VideoCapture cap{1};
 	if (!cap.isOpened()) {
 		throw std::runtime_error{ "Could not open VideoCapture" };
 	}

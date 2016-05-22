@@ -17,16 +17,16 @@ private:
 
 	int largest_C_area  = 0;
 	int largest_C_index = 0;
-	bool is_finger_point_idx(int idx);
 	float k_curvature(int idx, int k, vector<Point> contour);
 	bool is_finger_defect(Vec4i defect, vector<Point> contour);
 	float FindHull::point_distance(Point p1, Point p2);
 	Mat tmp;
-	int FindHull::is_finger_point_idx2(int idx, vector <Point> contours);
+
+	int best_local_finger_point_idx(int idx, vector <Point> contours);
 
 public:
-	vector<vector<Point> > imgcontours; // storing contours
-	vector<vector<Point> > conv_hull; // storing convex hull
+	vector<vector<Point> > imgcontours;  // storing contours
+	vector<vector<Point> > conv_hull;    // storing convex hull
 	vector<vector<Vec4i> > conv_defects; // storing convex defects
 	vector<vector<Point> > contours;
 
@@ -42,10 +42,8 @@ public:
 	vector<int> curv_below_t_idx;
 	vector<float> k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold);
 	float angle_between(Point p0, Point p1, Point p2);
-	vector < int> find_finger_points(vector <int> approx_hull_idx);
-	vector < int> FindHull::find_finger_points2(vector <Point> contour, vector<int> hull, vector<Vec4i> defects);
+	vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> hull, vector<Vec4i> defects);
 	vector < int> fingers_idx; 
-	bool is_finger_point_idx(int idx, vector <Point> contours);
 	Mat drawing;
 	void thresh_callback(Mat, int, bool, bool);
 	int find_thumb();

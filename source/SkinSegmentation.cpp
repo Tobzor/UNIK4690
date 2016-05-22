@@ -17,7 +17,6 @@ void SkinSegmentation::skin_segmentation(Mat frame, Mat& output_image) {
 	cv::Scalar skin_max = cv::Scalar(Y_max, Cr_max, Cb_max);
 	Mat frame_blur;
 	cv::GaussianBlur(frame, frame, cv::Size(0, 0), 2);
-
 	cv::inRange(frame, skin_min, skin_max, output_image);
 
 	cv::morphologyEx(output_image, output_image, cv::MORPH_CLOSE, morph_element_closing);

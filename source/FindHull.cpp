@@ -95,8 +95,7 @@ void FindHull::shape_analysis(Mat threshold_output) {
 	convexityDefects(semi_approx_contour, semi_approx_inthull, semi_approx_defects);
 
 	fingers_idx.clear();
-	//fingers_idx = find_finger_points(approx_inthull);
-	fingers_idx = find_finger_points2(semi_approx_contour, semi_approx_inthull, semi_approx_defects);
+	fingers_idx = find_finger_points(semi_approx_contour, semi_approx_inthull, semi_approx_defects);
 	// Find bounding rectangle, simplified contour and max inscribed circle
 	// for largest contours
 	boundRect = boundingRect(contours[largest_C_index]);
@@ -195,9 +194,7 @@ float FindHull::k_curvature(int idx,int k, vector<Point> contour) {
 	if (p2_idx > N-1) {
 		p2_idx = p2_idx - N;
 	}
-	
-	
-	
+
 	Point p0 = contour[p0_idx];
 	Point p1 = contour[idx];
 	Point p2 = contour[p2_idx];
@@ -251,29 +248,11 @@ int FindHull::find_thumb() {
 	return thumb_index;
 }
 
-vector < int> FindHull::find_finger_points(vector <int> approx_hull_idx) {
+
+vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> hull, vector<Vec4i> defects) {
 	vector <int> fingers_idx;
-	int finger_idx = 0;
-	int k = 1;
-	for (int i = 0; i < approx_hull_idx.size(); i++)
-	{
-		finger_idx = approx_hull_idx[i];
-		if (is_finger_point_idx(finger_idx)) {
-			fingers_idx.push_back(finger_idx);
-		}
-	}
-
-	imshow("Threshold", threshold_output);
-	return fingers_idx;
-}
-
-vector < int> FindHull::find_finger_points2(vector <Point> contour, vector<int> hull, vector<Vec4i> defects) {
-	vector <int> fingers_idx;
-	int finger_idx = 0;
-	int k = 0;
-
+	int finger_idx = 0; int k = 0;
 	vector <int> tmp_fingers_idx;
-
 
 	for (int i = 0; i < defects.size(); i++)
 	{
@@ -288,7 +267,7 @@ vector < int> FindHull::find_finger_points2(vector <Point> contour, vector<int> 
 		}
 	}
 	for (int i = 0; i < k; i++) {
-		int idx = is_finger_point_idx2(tmp_fingers_idx[i], contour);
+		int idx = best_local_finger_point_idx(tmp_fingers_idx[i], contour);
 		if (idx>-1) {
 			fingers_idx.push_back(idx);
 		}
@@ -296,6 +275,7 @@ vector < int> FindHull::find_finger_points2(vector <Point> contour, vector<int> 
 	return fingers_idx;
 }
 float FindHull::point_distance(Point p1, Point p2) {
+	// returns the distance between two points
 	Point d = p2 - p1;
 	return sqrt(d.dot(d));
 }
@@ -315,69 +295,30 @@ bool FindHull::is_finger_defect(Vec4i defect, vector<Point> contour) {
 	}
 	return is_fd;
 }
-bool FindHull::is_finger_point_idx(int idx) {
-	bool is_fp_idx = true;
-	Point p = approx_contour[idx];
-	Point d = p - circle_center;
-	float kc = k_curvature(idx, 1, approx_contour)*180/CV_PI;
-	if ( kc > 65) {
-		is_fp_idx = false; 
-	} 
-	else if (sqrt(d.dot(d)) > 4.0f*circle_radius) {
-		is_fp_idx = false; // too far away from palm
-	}
+int FindHull::best_local_finger_point_idx(int idx, vector <Point> contours) {
+	// Checks to find the point with locally lowest k-kurvature
+	// If this point have k-curvature lower than 60 degrees,
+	// it is a fingerpoint
+	// returns -1 if no fingerpoint is found. 
+	int k = 4; 
+	int best_idx = -1; int neighbor_idx;
+	float current_kc;
+	float lowest_kc = 10000.0f; // angles have to be larger than 360
 
-	putText(threshold_output, to_string(kc), approx_contour[idx], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1, 1);
-
-	return is_fp_idx;
-}
-bool FindHull::is_finger_point_idx(int idx,vector <Point> contours) {
-
-	bool is_fp_idx = true;
-	Point p = contours[idx];
-	Point d = p - circle_center;
-	float kc = k_curvature(idx, 4, contours) * 180 / CV_PI;
-
-	if (kc > 60) {
-		is_fp_idx = false;
-	}
-	else if (sqrt(d.dot(d)) > 4.0f*circle_radius) {
-		//is_fp_idx = false; // too far away from palm
-	}
-
-	putText(threshold_output, to_string(kc), contours[idx], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1, 1);
-	return is_fp_idx;
-}
-int FindHull::is_finger_point_idx2(int idx, vector <Point> contours) {
-	int k = 4;
-	bool is_fp_idx = true;
-	int best_idx = -1;
-	int neighbor_idx;
-	int lowest_kc = 10000;
 	for (int i = -k; i <= k; i++) {
-		neighbor_idx = i + idx;
+		neighbor_idx = i + idx; 
 		if ((neighbor_idx >= 0) && (neighbor_idx < contours.size())) {
-
-			Point p = contours[neighbor_idx];
-			Point d = p - circle_center;
-			float kc = k_curvature(neighbor_idx, 4, contours) * 180 / CV_PI;
-			if (kc < lowest_kc) {
+			current_kc = k_curvature(neighbor_idx, 4, contours) * 180 / CV_PI;
+			if (current_kc < lowest_kc) {
 				best_idx = neighbor_idx;
-				lowest_kc = kc;
-			}
-			if (sqrt(d.dot(d)) > 4.0f*circle_radius) {
-				
+				lowest_kc = current_kc;
 			}
 		}
 	}
-	if (lowest_kc > 60) {
-		is_fp_idx = false;
+	if (lowest_kc > 75) {
+		// no valid fingerpoint was found
+		best_idx = -1;
 	}
-	//else if (sqrt(d.dot(d)) > 4.0f*circle_radius) {
-	//	//is_fp_idx = false; // too far away from palm
-	//}
-
-	putText(threshold_output, to_string(lowest_kc), contours[idx], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(255, 0, 0), 1, 1);
 	return best_idx;
 }
 
