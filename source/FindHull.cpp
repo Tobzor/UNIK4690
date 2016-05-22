@@ -284,13 +284,17 @@ bool FindHull::is_finger_defect(Vec4i defect, vector<Point> contour) {
 	Point p1 = contour[p1idx]; 
 	Point p2 = contour[p2idx];
 	Point p3 = contour[p3idx];
-
 	int depth = defect[3]/256.0;
 	bool is_fd = true;
+
 	if ((depth < 0.9*circle_radius)||(depth>bound_circle_radius)) {
+		// checks that the defect is deep enough and not to deep
+		// (deeper than 90% of the palm radius and less deep than
+		// the radius of the least enclosing circle)
 		is_fd = false;
 	}
 	if (angle_between(p1, p3, p2)>95 * 180 / CV_PI) {
+		// checks that the defect is not wider than 95 degrees
 		is_fd = false;
 	}
 	return is_fd;
