@@ -1,6 +1,6 @@
 #include "FindHull.h"
 #include "SkinSegmentation.h"
-// defualt constructor
+// default constructor
 FindHull::FindHull()
 {
 	ss = SkinSegmentation();
@@ -8,7 +8,6 @@ FindHull::FindHull()
 
 void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val)
 {
-	// Blurring removed_background
 	if (skin_segmentation)
 	{
 		Mat frame_gray;
@@ -18,7 +17,6 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val)
 
 		ss.find_faces(frame_gray, faces);
 		ss.delete_faces( threshold_output,  threshold_output, faces, debug_face);
-
 	}
 	else {
 		blur(background_removed, background_removed, Size(3, 3));
@@ -28,11 +26,10 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val)
 		}
 		else
 		{
-			// Detect edges using Threshold
+			// Detect edges using Threshold, with otsu's method.
 			threshold(background_removed, threshold_output, 0, 255, THRESH_OTSU);
 		}
 	}
-
 	tmp = threshold_output.clone();
 	cv::cvtColor(tmp, tmp, COLOR_GRAY2BGR);
 	shape_analysis(threshold_output);
