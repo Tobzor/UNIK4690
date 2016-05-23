@@ -25,7 +25,8 @@ private:
 	int best_local_finger_point_idx(int idx, vector <Point> contours);
 
 public:
-	enum HandDir{left=-1, right=1};
+	enum HandDir{LEFT=-1, RIGHT=1, UNKNOWN = 0} direction;
+	float thumb_angle = -1;
 	vector<vector<Point> > imgcontours;  // storing contours
 	vector<vector<Point> > conv_hull;    // storing convex hull
 	vector<vector<Vec4i> > conv_defects; // storing convex defects
@@ -43,8 +44,10 @@ public:
 	vector<int> curv_below_t_idx;
 	vector<float> k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold);
 	float angle_between(Point p0, Point p1, Point p2);
-	vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> hull, vector<Vec4i> defects);
+	float angle_between(Point u, Point v);
+	vector < int> find_finger_points(vector <Point> contour, vector<int> hull, vector<Vec4i> defects);
 	vector < int> fingers_idx; 
+	Point thumb_point;
 	Mat drawing;
 	void thresh_callback(Mat, int, bool, bool);
 	int find_thumb();

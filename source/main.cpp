@@ -165,9 +165,15 @@ void draw_circles(FindHull o, double opacity)
 	for (int j = 0; j < o.semi_approx_inthull.size(); j++) {
 		circle(overlay, o.semi_approx_contour[o.semi_approx_inthull[j]], radius, Scalar(255, 255, 255), thickness, lineType);
 	}
-	int thumb_index = o.find_thumb();
-	circle(overlay, o.approx_contour[thumb_index], radius*3, Scalar(255, 255, 255), thickness, lineType);
-	circle(overlay, o.thumb_dir, radius * 4, Scalar(255, 255, 0), thickness, lineType);
+	//int thumb_index = o.find_thumb();
+	if ((o.thumb_point.x + o.thumb_point.y) > 0) {
+		circle(overlay, o.thumb_point, radius * 3, Scalar(255, 255, 255), thickness, lineType);
+		putText(overlay, to_string(o.thumb_angle), o.thumb_point, CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
+
+	}
+	putText(overlay, to_string(o.direction),Point(100,50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
+
+	//circle(overlay, o.thumb_dir, radius * 4, Scalar(255, 255, 0), thickness, lineType);
 	vector<vector<Point> > contourVec;
 	contourVec.push_back(o.approx_contour);
 	//drawContours(overlay, contourVec, 0, Scalar(0, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
