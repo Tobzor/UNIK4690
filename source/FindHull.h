@@ -1,6 +1,7 @@
 #pragma once
 #include "opencv2/opencv.hpp"
 #include "SkinSegmentation.h"
+#include "Finger.h"
 
 using namespace cv;
 using namespace std;
@@ -42,6 +43,7 @@ public:
 	Rect boundRect;
 	vector<float> curvature;
 	vector<int> curv_below_t_idx;
+	Vec4i thumb_defect;
 	vector<float> k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold);
 	float angle_between(Point p0, Point p1, Point p2);
 	float angle_between(Point u, Point v);
@@ -55,6 +57,7 @@ public:
 	void find_circle();
 	void shape_analysis(Mat threshold_output);
 	Point thumb_dir;
+	vector<Finger> fingers;
 	//constructor
 	FindHull();
 	// destructor / deConstructor

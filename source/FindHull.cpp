@@ -34,7 +34,7 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val, bool 
 			threshold(background_removed, threshold_output, 0, 255, THRESH_OTSU);
 		}
 	}
-
+	fingers.clear();
 	tmp = threshold_output.clone();
 	cv::cvtColor(tmp, tmp, COLOR_GRAY2BGR);
 	shape_analysis(threshold_output);
@@ -323,17 +323,68 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 		else {
 			direction = LEFT;
 		}
+
 	}
 	else {
 
 		direction = UNKNOWN;
 	}
+	vector<Finger> new_fingers;
+	new_fingers.clear();
+	for (int i = 0; i < finger_defects.size(); i++)
+	{
+		Vec4i currentDefect = finger_defects[i];
+		Vec4i prevDefect, nextDefect;
+		if (i - 1 >= 0) {
+			prevDefect = finger_defects[i - 1];
+		}
+		else {
+			prevDefect = NULL;
+		}
+		if (i + 1 < finger_defects.size()) {
+			nextDefect = finger_defects[i + 1];
+		}
+		else {
+			nextDefect = NULL;
+		}
+		Finger f,f2;
+		bool extra_finger = false;
+		if (direction == RIGHT) {
+			if (i == 0) {
+				f2 = Finger(currentDefect[0], contour, currentDefect, NULL);
+				extra_finger = true;
+			}
+			f = Finger(currentDefect[1], contour, nextDefect, currentDefect);
+		}
+		else {
+			f = Finger(currentDefect[0], contour, currentDefect, prevDefect);
+			if (i == finger_defects.size() - 1) {
+				f2 = Finger(currentDefect[1], contour, NULL, currentDefect);
+				extra_finger = true;
+			}
+		}
+		int idx = best_local_finger_point_idx(f.idx, contour);
+		if (idx > -1) {
+			f.idx = idx;
+			new_fingers.push_back(f);
+		}
+		if (extra_finger) {
+			int idx = best_local_finger_point_idx(f2.idx, contour);
+			if (idx > -1) {
+				f2.idx = idx;
+				new_fingers.push_back(f2);
+			}
+		}
+		fingers.clear();
+		fingers = new_fingers;
+	}
 
 	for (int i = 0; i < k; i++) {
 		int idx = best_local_finger_point_idx(tmp_fingers_idx[i], contour);
-		if (idx>-1) {
+		if (idx > -1) {
 			fingers_idx.push_back(idx);
 		}
+
 	}
 	return fingers_idx;
 }

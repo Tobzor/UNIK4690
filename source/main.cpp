@@ -168,7 +168,15 @@ void draw_circles(FindHull o, double opacity)
 	//int thumb_index = o.find_thumb();
 	if ((o.thumb_point.x + o.thumb_point.y) > 0) {
 		circle(overlay, o.thumb_point, radius * 3, Scalar(255, 255, 255), thickness, lineType);
-		putText(overlay, to_string(o.thumb_angle), o.thumb_point, CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
+	//	putText(overlay, to_string(o.thumb_angle), o.thumb_point, CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
+
+	}
+	for (int j = 0; j < o.fingers.size(); j++) {
+		Finger currentFinger = o.fingers[j];
+		Point root = currentFinger.finger_root;
+		Point tip = currentFinger.getPoint();
+
+		line(overlay, root, tip, Scalar(0,0, 255), 5, 8, 0);
 
 	}
 	putText(overlay, to_string(o.direction),Point(100,50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
@@ -213,8 +221,8 @@ void draw_numbers(FindHull o, double opacity) {
 				hasfired = true;
 				Point p1 = o.semi_approx_contour[o.fingers_idx[0]];
 				Point p2 = o.semi_approx_contour[o.fingers_idx[1]];
-				Point d1 = p1 - o.circle_center;
-				Point d2 = p2 - o.circle_center;
+				Point d1 = p1 - o.semi_approx_contour[o.thumb_defect[2]];
+				Point d2 = p2 - o.semi_approx_contour[o.thumb_defect[2]];
 				Point d;
 				Point p;
 				if (sqrt(d1.dot(d1)) > sqrt(d2.dot(d2))) {
@@ -253,16 +261,23 @@ void draw_numbers(FindHull o, double opacity) {
 
 bool is_finger_gun(FindHull o) {
 	int num_fingers = o.fingers_idx.size();
+	Vec4i thumb_defect = o.thumb_defect;
 	if (num_fingers != 2) {
 		return false;
 	}
 	int f1_idx  = o.fingers_idx[0];
 	int f2_idx  = o.fingers_idx[1];
-	//int midt_idx = f1_idx + 1;
-	Point p1 = o.semi_approx_contour[f1_idx];
-	//Point p2 = o.approx_contour[midt_idx];
-	Point p2 = o.circle_center;
-	Point p3 = o.semi_approx_contour[f2_idx];
+	////int midt_idx = f1_idx + 1;
+	//Point p1 = o.semi_approx_contour[f1_idx];
+	////Point p2 = o.approx_contour[midt_idx];
+	//Point p2 = o.circle_center;
+	//Point p3 = o.semi_approx_contour[f2_idx];
+//
+	Point p1 = o.semi_approx_contour[thumb_defect[0]];
+	Point p2 = o.semi_approx_contour[thumb_defect[1]];
+
+	Point p3 = o.semi_approx_contour[thumb_defect[2]];
+
 	float angle = o.angle_between(p1, p2, p3)*180/CV_PI;
 
 	if ((angle > 100) || (angle < 75)) {
