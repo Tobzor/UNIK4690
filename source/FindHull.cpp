@@ -226,6 +226,7 @@ int FindHull::find_thumb() {
 	float current_area;
 	float max_area = -1;
 	int thumb_index = 0;
+	Vec4i thumb_defect;
 	for (int i = 0; i < approx_defects.size(); i++)
 	{
 		Vec4i defect = approx_defects[i];
@@ -240,8 +241,19 @@ int FindHull::find_thumb() {
 		if (current_area > max_area) {
 			thumb_index = defect[1];
 			max_area = current_area;
+			thumb_defect = defect;
 		}
 	}
+	float d1 = point_distance(approx_contour[thumb_defect[0]], approx_contour[thumb_defect[2]]);
+	float d2 = point_distance(approx_contour[thumb_defect[1]], approx_contour[thumb_defect[2]]);
+
+	if (d1 < d2) {
+		thumb_index = thumb_defect[0];
+	}
+	else {
+		thumb_index = thumb_defect[1];
+	}
+
 	return thumb_index;
 }
 
@@ -313,7 +325,7 @@ int FindHull::best_local_finger_point_idx(int idx, vector <Point> contours) {
 		neighbor_idx = i + idx; 
 		if ((neighbor_idx >= 0) && (neighbor_idx < contours.size())) {
 			current_kc = k_curvature(neighbor_idx, 4, contours) * 180 / CV_PI;
-			if (current_kc < lowest_kc) {
+			if ((current_kc < lowest_kc) && (point_distance(contours[neighbor_idx],circle_center)< 4*circle_radius)) {
 				best_idx = neighbor_idx;
 				lowest_kc = current_kc;
 			}
@@ -329,6 +341,7 @@ int FindHull::best_local_finger_point_idx(int idx, vector <Point> contours) {
 float findTriangleArea(Point p1, Point p2, Point p3) {
 	return 0.5*(p1.x*(p2.y - p3.y) + p2.x*(p3.y - p1.y) + p3.x*(p1.y - p2.y));
 }
+
 
 // deConstructor
 FindHull::~FindHull()

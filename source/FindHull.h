@@ -25,6 +25,7 @@ private:
 	int best_local_finger_point_idx(int idx, vector <Point> contours);
 
 public:
+	enum HandDir{left=-1, right=1};
 	vector<vector<Point> > imgcontours;  // storing contours
 	vector<vector<Point> > conv_hull;    // storing convex hull
 	vector<vector<Vec4i> > conv_defects; // storing convex defects
@@ -50,6 +51,7 @@ public:
 	void draw_contour(Mat& drawing, vector<Point> contour, Scalar color);
 	void find_circle();
 	void shape_analysis(Mat threshold_output);
+	Point thumb_dir;
 	//constructor
 	FindHull();
 	// destructor / deConstructor
