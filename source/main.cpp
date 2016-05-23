@@ -157,11 +157,11 @@ void draw_circles(FindHull o, double opacity)
 		circle(overlay, p, 2, Scalar(0, 0, 255), thickness, lineType);
 		int test2 = 0;
 	}
-	for (int i = 0; i < o.fingers_idx.size(); i++) {
+	//for (int i = 0; i < o.fingers_idx.size(); i++) {
 
-		line(overlay, o.circle_center, o.semi_approx_contour[o.fingers_idx[i]], Scalar(0, 255, 255), 5, 8, 0);
-		circle(overlay, o.semi_approx_contour[o.fingers_idx[i]], radius * 3, Scalar(255, 0, 0), thickness, lineType);
-	}
+	//	line(overlay, o.circle_center, o.semi_approx_contour[o.fingers_idx[i]], Scalar(0, 255, 255), 5, 8, 0);
+	//	circle(overlay, o.semi_approx_contour[o.fingers_idx[i]], radius * 3, Scalar(255, 0, 0), thickness, lineType);
+	//}
 	for (int j = 0; j < o.semi_approx_inthull.size(); j++) {
 		circle(overlay, o.semi_approx_contour[o.semi_approx_inthull[j]], radius, Scalar(255, 255, 255), thickness, lineType);
 	}
@@ -175,6 +175,7 @@ void draw_circles(FindHull o, double opacity)
 		Finger currentFinger = o.fingers[j];
 		Point root = currentFinger.finger_root;
 		Point tip = currentFinger.getPoint();
+		circle(overlay, tip, radius * 3, Scalar(255, 0, 0), thickness, lineType);
 
 		line(overlay, root, tip, Scalar(0,0, 255), 5, 8, 0);
 
