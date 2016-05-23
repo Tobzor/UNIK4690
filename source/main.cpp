@@ -141,11 +141,10 @@ void draw_circles(FindHull o, double opacity)
 		int max_distance_idx = defect[2];
 		circle(overlay, o.approx_contour[max_distance_idx], radius, Scalar(255, 0, 255), thickness, lineType);
 	}
-	rectangle(overlay, o.boundRect.tl(), o.boundRect.br(), Scalar(255, 0, 0), 2, 8, 0);
 	circle(overlay, Point(o.boundRect.x, o.boundRect.y), radius, Scalar(255, 100, 255), thickness, lineType);
-	if (o.circle_radius > 0) {
-		circle(overlay, o.circle_center, radius, Scalar(255, 100, 255), thickness, lineType);
-		circle(overlay, o.circle_center, o.circle_radius, Scalar(255, 100, 255), 2, lineType);
+	if (o.palm_radius > 0) {
+		circle(overlay, o.palm_center, radius, Scalar(255, 100, 255), thickness, lineType);
+		circle(overlay, o.palm_center, o.palm_radius, Scalar(255, 100, 255), 2, lineType);
 	}
 	if (o.bound_circle_radius > 0) {
 		circle(overlay, o.bound_circle_center, o.bound_circle_radius, Scalar(255, 100, 255), 2, lineType);
@@ -159,7 +158,7 @@ void draw_circles(FindHull o, double opacity)
 	}
 	//for (int i = 0; i < o.fingers_idx.size(); i++) {
 
-	//	line(overlay, o.circle_center, o.semi_approx_contour[o.fingers_idx[i]], Scalar(0, 255, 255), 5, 8, 0);
+	//	line(overlay, o.palm_center, o.semi_approx_contour[o.fingers_idx[i]], Scalar(0, 255, 255), 5, 8, 0);
 	//	circle(overlay, o.semi_approx_contour[o.fingers_idx[i]], radius * 3, Scalar(255, 0, 0), thickness, lineType);
 	//}
 	for (int j = 0; j < o.semi_approx_inthull.size(); j++) {
@@ -271,7 +270,7 @@ bool is_finger_gun(FindHull o) {
 	////int midt_idx = f1_idx + 1;
 	//Point p1 = o.semi_approx_contour[f1_idx];
 	////Point p2 = o.approx_contour[midt_idx];
-	//Point p2 = o.circle_center;
+	//Point p2 = o.palm_center;
 	//Point p3 = o.semi_approx_contour[f2_idx];
 //
 	Point p1 = o.semi_approx_contour[thumb_defect[0]];

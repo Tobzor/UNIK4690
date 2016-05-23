@@ -24,7 +24,7 @@ private:
 	Mat tmp;
 
 	int best_local_finger_point_idx(int idx, vector <Point> contours);
-
+	bool is_thumb_defect(Vec4i defect, vector<Point> contour);
 public:
 	enum HandDir{LEFT=-1, RIGHT=1, UNKNOWN = 0} direction;
 	float thumb_angle = -1;
@@ -36,9 +36,9 @@ public:
 	vector<Point> approx_contour, approx_hull, semi_approx_contour;
 	vector<int> semi_approx_inthull;
 	vector<Vec4i> approx_defects, semi_approx_defects; // storing convex defects
-	Point circle_center;
+	Point palm_center;
 	Point2f bound_circle_center;
-	float circle_radius, bound_circle_radius;
+	float palm_radius, bound_circle_radius;
 	
 	Rect boundRect;
 	vector<float> curvature;
