@@ -289,7 +289,6 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 	int thumb_idx_idx;
 	int current_area;
 	float max_area = -1.0f;
-	Vec4i thumb_defect;
 	thumb_idx_idx = -1;
 	thumb_point = Point(-1, -1);
 	int defectCount = 0;

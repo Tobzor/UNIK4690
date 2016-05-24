@@ -186,15 +186,12 @@ void draw_circles(FindHull o, double opacity)
 	}
 
 	if (debug) {
-	if (o.bound_circle_radius > 0) {
-		circle(overlay, o.bound_circle_center, o.bound_circle_radius, Scalar(255, 100, 255), 2, lineType);
-	}
+		if (o.bound_circle_radius > 0) {
+			circle(overlay, o.bound_circle_center, o.bound_circle_radius, Scalar(255, 100, 255), 2, lineType);
+		}
 		for (int j = 0; j < o.semi_approx_inthull.size(); j++) {
 			circle(overlay, o.semi_approx_contour[o.semi_approx_inthull[j]], radius, Scalar(255, 255, 255), thickness, lineType);
 		}
-	}
-	if ((o.thumb_point.x + o.thumb_point.y) > 0) {
-		circle(overlay, o.thumb_point, radius * 3, Scalar(255, 255, 255), thickness, lineType);
 	}
 	for (int j = 0; j < o.fingers.size(); j++) {
 		Finger currentFinger = o.fingers[j];
@@ -206,6 +203,9 @@ void draw_circles(FindHull o, double opacity)
 	}
 	putText(overlay, to_string(o.direction),Point(100,50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
 
+	if ((o.thumb_point.x + o.thumb_point.y) > 0) {
+		circle(overlay, o.thumb_point, 40, Scalar(255, 255, 255), thickness, lineType);
+	}
 	vector<vector<Point> > contourVec;
 	contourVec.push_back(o.approx_contour);
 	if (debug) {
@@ -300,14 +300,20 @@ bool is_finger_gun(FindHull o) {
 	////Point p2 = o.approx_contour[midt_idx];
 	//Point p2 = o.palm_center;
 	//Point p3 = o.semi_approx_contour[f2_idx];
+
 	Point p1 = o.semi_approx_contour[thumb_defect[0]];
 	Point p2 = o.semi_approx_contour[thumb_defect[1]];
-
 	Point p3 = o.semi_approx_contour[thumb_defect[2]];
 
-	float angle = o.angle_between(p1, p2, p3)*180/CV_PI;
+	circle(frame, p1, 100, Scalar(0, 0, 0), -1, 8);
+	circle(frame, p2, 50, Scalar(0, 0, 255), -1, 8);
+	circle(frame, p3, 25, Scalar(0, 255, 0), -1, 8);
 
-	if ((angle > 100) || (angle < 75)) {
+	float angle = o.angle_between(p1, p3, p2)*180/CV_PI;
+
+	putText(frame, to_string(angle), Point(200, 200), CV_FONT_HERSHEY_COMPLEX, 4, Scalar(0, 0, 255), 4, 8);
+
+	if ((angle > 110) || (angle < 75)) {
 		return false;
 	}
 	return true;
