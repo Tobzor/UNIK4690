@@ -1,6 +1,8 @@
 #include "FindHull.h"
 #include "SkinSegmentation.h"
-// defualt constructor
+#include "Finger.h"
+
+// default constructor
 FindHull::FindHull()
 {
 	ss = SkinSegmentation();
@@ -8,7 +10,6 @@ FindHull::FindHull()
 
 void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val)
 {
-	// Blurring removed_background
 	if (skin_segmentation)
 	{
 		Mat frame_gray;
@@ -18,7 +19,6 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val)
 
 		ss.find_faces(frame_gray, faces);
 		ss.delete_faces( threshold_output,  threshold_output, faces, debug_face);
-
 	}
 	else {
 		blur(background_removed, background_removed, Size(3, 3));
@@ -28,11 +28,11 @@ void FindHull::thresh_callback(cv::Mat background_removed, int thresh_val)
 		}
 		else
 		{
-			// Detect edges using Threshold
+			// Detect edges using Threshold, with otsu's method.
 			threshold(background_removed, threshold_output, 0, 255, THRESH_OTSU);
 		}
 	}
-
+	fingers.clear();
 	tmp = threshold_output.clone();
 	cv::cvtColor(tmp, tmp, COLOR_GRAY2BGR);
 	shape_analysis(threshold_output);
@@ -130,7 +130,7 @@ void FindHull::shape_analysis(Mat threshold_output) {
 	*/
 }
 void FindHull::find_circle() {
-	circle_radius = -1;
+	palm_radius = -1;
 	float dist; Point currentPoint; int stepsize = 40;
 	for (int k = 0.25*boundRect.width; k < 0.75*boundRect.width; k = k + stepsize)
 	{
@@ -138,24 +138,24 @@ void FindHull::find_circle() {
 		{
 			currentPoint = Point(boundRect.x + k, boundRect.y + l);
 			dist = pointPolygonTest(contours[largest_C_index], currentPoint, true);
-			if (dist > circle_radius)
+			if (dist > palm_radius)
 			{
-				circle_radius = dist;
-				circle_center = currentPoint;
+				palm_radius = dist;
+				palm_center = currentPoint;
 			}
 		}
 	}
-	Point cc = circle_center;
+	Point cc = palm_center;
 	for (int k = cc.x - 0.5*stepsize; k < cc.x + 0.5*stepsize; k++)
 	{
 		for (int l = cc.y - 0.5*stepsize; l < cc.y + 0.5*stepsize; l++)
 		{
 			currentPoint = Point(k, l);
 			dist = pointPolygonTest(contours[largest_C_index], currentPoint, true);
-			if (dist > circle_radius)
+			if (dist > palm_radius)
 			{
-				circle_radius = dist;
-				circle_center = currentPoint;
+				palm_radius = dist;
+				palm_center = currentPoint;
 			}
 		}
 	}
@@ -215,20 +215,41 @@ float FindHull::k_curvature(int idx,int k, vector<Point> contour) {
 	return angle;
 }
 
+bool FindHull::is_thumb_defect(Vec4i defect, vector<Point> contour) {
+	int p1idx = defect[0]; int p2idx = defect[1]; int p3idx = defect[2];
+	Point p1 = contour[p1idx];
+	Point p2 = contour[p2idx];
+	Point p3 = contour[p3idx];
+
+	float d1 = point_distance(p1, p3);
+	float d2 = point_distance(p2, p3);
+
+	bool is_td = false;
+
+	if ((d1 < 1.5*d2) || (d2 < 1.5*d1)) {
+		is_td = true;
+	}
+	return is_td;
+
+}
+
 float FindHull::angle_between(Point p0, Point p1, Point p2) {
 	Point v = p0 - p1; Point u = p2 - p1;
+	return (angle_between(u, v));
 
+}
+float FindHull::angle_between(Point u, Point v) {
 	float dot_product = v.dot(u);
 	float length_v = sqrt(v.dot(v));
 	float length_u = sqrt(u.dot(u));
 	return acos(dot_product / (length_u*length_v));
-
 }
 
 int FindHull::find_thumb() {
 	float current_area;
 	float max_area = -1;
 	int thumb_index = 0;
+	Vec4i thumb_defect;
 	for (int i = 0; i < approx_defects.size(); i++)
 	{
 		Vec4i defect = approx_defects[i];
@@ -243,7 +264,17 @@ int FindHull::find_thumb() {
 		if (current_area > max_area) {
 			thumb_index = defect[1];
 			max_area = current_area;
+			thumb_defect = defect;
 		}
+	}
+	float d1 = point_distance(approx_contour[thumb_defect[0]], approx_contour[thumb_defect[2]]);
+	float d2 = point_distance(approx_contour[thumb_defect[1]], approx_contour[thumb_defect[2]]);
+
+	if (d1 < d2) {
+		thumb_index = thumb_defect[0];
+	}
+	else {
+		thumb_index = thumb_defect[1];
 	}
 	return thumb_index;
 }
@@ -253,22 +284,133 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 	vector <int> fingers_idx;
 	int finger_idx = 0; int k = 0;
 	vector <int> tmp_fingers_idx;
+	vector <int> gap_idx;
+	vector <Vec4i> finger_defects;
+	int thumb_idx_idx;
+	int current_area;
+	float max_area = -1.0f;
+	Vec4i thumb_defect;
+	thumb_idx_idx = -1;
+	thumb_point = Point(-1, -1);
+	int defectCount = 0;
 
 	for (int i = 0; i < defects.size(); i++)
 	{
 		Vec4i defect = defects[i];
 		if (is_finger_defect(defect, contour)) {
+			tmp_fingers_idx.push_back(defect[1]);
+
+			finger_defects.push_back(defect);
+			
+			current_area = (defect[3] / 256.0f)*point_distance(contour[defect[0]], contour[defect[1]]);
+			if (current_area > max_area) {
+				thumb_defect = defect;
+				thumb_idx_idx = defectCount;
+				max_area = current_area;
+			}
+			defectCount++;
+
 			if (k<1) {
 				tmp_fingers_idx.push_back(defect[0]);
 				k++;
 			}
-			tmp_fingers_idx.push_back(defect[1]);
+			gap_idx.push_back(defect[2]);
 			k++;
 		}
 	}
+
+	// find direction
+	if (max_area >-1){
+		thumb_defect = finger_defects[thumb_idx_idx];
+		float d1 = point_distance(contour[thumb_defect[0]], contour[thumb_defect[2]]);
+		float d2 = point_distance(contour[thumb_defect[1]], contour[thumb_defect[2]]);
+
+		if (d1 < d2) {
+			thumb_point = contour[thumb_defect[0]];
+		}
+		else {
+			thumb_point = contour[thumb_defect[1]];
+		}
+
+		Point dir = thumb_point - contour[thumb_defect[2]];
+		float angle = angle_between(dir, Point(1, 0));
+		thumb_angle = angle*180/CV_PI;
+
+		if (thumb_angle > 90) {
+			direction = RIGHT;
+		}
+		else {
+			direction = LEFT;
+		}
+
+	}
+	else {
+
+		direction = UNKNOWN;
+	}
+	vector<Finger> new_fingers;
+	new_fingers.clear();
+	for (int i = 0; i < finger_defects.size(); i++)
+	{
+		Vec4i currentDefect = finger_defects[i];
+		Vec4i prevDefect, nextDefect;
+		if (i - 1 >= 0) {
+			prevDefect = finger_defects[i - 1];
+		}
+		else {
+			prevDefect = NULL;
+		}
+		if (i + 1 < finger_defects.size()) {
+			nextDefect = finger_defects[i + 1];
+		}
+		else {
+			nextDefect = NULL;
+		}
+		Finger f,f2;
+		bool extra_finger = false;
+		if (direction == RIGHT) {
+
+			if (i == 0) {
+				f2 = Finger(currentDefect[0], contour, currentDefect, NULL);
+				extra_finger = true;
+
+				int idx = best_local_finger_point_idx(f2.idx, contour);
+				if (idx > -1) {
+					f2.idx = idx;
+					new_fingers.push_back(f2);
+				}
+			}
+			f = Finger(currentDefect[1], contour, nextDefect, currentDefect);
+			int idx = best_local_finger_point_idx(f.idx, contour);
+			if (idx > -1) {
+				f.idx = idx;
+				new_fingers.push_back(f);
+			}
+
+		}
+		else {		
+			f = Finger(currentDefect[0], contour, currentDefect, prevDefect);
+
+			int idx = best_local_finger_point_idx(f.idx, contour);
+			if (idx > -1) {
+				f.idx = idx;
+				new_fingers.push_back(f);
+			}
+			if (i == finger_defects.size() - 1) {
+				f2 = Finger(currentDefect[1], contour, NULL, currentDefect);
+				extra_finger = true;
+				int idx = best_local_finger_point_idx(f2.idx, contour);
+				if (idx > -1) {
+					f2.idx = idx;
+					new_fingers.push_back(f2);
+				}
+			}
+		}
+		fingers = new_fingers;
+	}
 	for (int i = 0; i < k; i++) {
 		int idx = best_local_finger_point_idx(tmp_fingers_idx[i], contour);
-		if (idx>-1) {
+		if (idx > -1) {
 			fingers_idx.push_back(idx);
 		}
 	}
@@ -291,8 +433,9 @@ bool FindHull::is_finger_defect(Vec4i defect, vector<Point> contour) {
 	Point p3 = contour[p3idx];
 	int depth = defect[3]/256.0;
 	bool is_fd = true;
+	int md = 4 * palm_radius; // max distance from palm centre;
 
-	if ((depth < 0.9*circle_radius)||(depth>bound_circle_radius)) {
+	if ((depth < 0.9*palm_radius)||(depth>bound_circle_radius)) {
 		// checks that the defect is deep enough and not to deep
 		// (deeper than 90% of the palm radius and less deep than
 		// the radius of the least enclosing circle)
@@ -300,6 +443,9 @@ bool FindHull::is_finger_defect(Vec4i defect, vector<Point> contour) {
 	}
 	if (angle_between(p1, p3, p2)>95 * 180 / CV_PI) {
 		// checks that the defect is not wider than 95 degrees
+		is_fd = false;
+	}
+	if ((point_distance(p1, palm_center) > md) || (point_distance(p2, palm_center) > md)) {
 		is_fd = false;
 	}
 	return is_fd;
@@ -318,7 +464,7 @@ int FindHull::best_local_finger_point_idx(int idx, vector <Point> contours) {
 		neighbor_idx = i + idx; 
 		if ((neighbor_idx >= 0) && (neighbor_idx < contours.size())) {
 			current_kc = k_curvature(neighbor_idx, 4, contours) * 180 / CV_PI;
-			if (current_kc < lowest_kc) {
+			if ((current_kc < lowest_kc) ){//&& (point_distance(contours[neighbor_idx],palm_center)< 4*palm_radius)) {
 				best_idx = neighbor_idx;
 				lowest_kc = current_kc;
 			}
@@ -329,10 +475,6 @@ int FindHull::best_local_finger_point_idx(int idx, vector <Point> contours) {
 		best_idx = -1;
 	}
 	return best_idx;
-}
-
-float findTriangleArea(Point p1, Point p2, Point p3) {
-	return 0.5*(p1.x*(p2.y - p3.y) + p2.x*(p3.y - p1.y) + p3.x*(p1.y - p2.y));
 }
 
 // deConstructor

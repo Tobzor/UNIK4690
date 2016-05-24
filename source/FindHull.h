@@ -1,6 +1,7 @@
 #pragma once
 #include "opencv2/opencv.hpp"
 #include "SkinSegmentation.h"
+#include "Finger.h"
 
 using namespace cv;
 using namespace std;
@@ -23,8 +24,10 @@ private:
 	Mat tmp;
 
 	int best_local_finger_point_idx(int idx, vector <Point> contours);
-
+	bool is_thumb_defect(Vec4i defect, vector<Point> contour);
 public:
+	enum HandDir{LEFT=-1, RIGHT=1, UNKNOWN = 0} direction;
+	float thumb_angle = -1;
 	vector<vector<Point> > imgcontours;  // storing contours
 	vector<vector<Point> > conv_hull;    // storing convex hull
 	vector<vector<Vec4i> > conv_defects; // storing convex defects
@@ -33,17 +36,20 @@ public:
 	vector<Point> approx_contour, approx_hull, semi_approx_contour;
 	vector<int> semi_approx_inthull;
 	vector<Vec4i> approx_defects, semi_approx_defects; // storing convex defects
-	Point circle_center;
+	Point palm_center;
 	Point2f bound_circle_center;
-	float circle_radius, bound_circle_radius;
+	float palm_radius, bound_circle_radius;
 	
 	Rect boundRect;
 	vector<float> curvature;
 	vector<int> curv_below_t_idx;
+	Vec4i thumb_defect;
 	vector<float> k_curvature(vector<Point> contour, vector<int>& curv_below_t_idx, int k, float threshold);
 	float angle_between(Point p0, Point p1, Point p2);
-	vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> hull, vector<Vec4i> defects);
+	float angle_between(Point u, Point v);
+	vector < int> find_finger_points(vector <Point> contour, vector<int> hull, vector<Vec4i> defects);
 	vector < int> fingers_idx; 
+	Point thumb_point;
 	Mat drawing;
 	void thresh_callback(Mat, int);
 	int find_thumb();
@@ -56,6 +62,8 @@ public:
 	bool debug_face = false;
 	bool debug_thresh = false;
 	bool debug_curv = false;
+	Point thumb_dir;
+	vector<Finger> fingers;
 	//constructor
 	FindHull();
 	// destructor / deConstructor
