@@ -175,64 +175,41 @@ void draw_circles(FindHull o, double opacity)
 	float radius = 5;
 	Point center = Point(0.5f*m, 0.5f*n);
 	Mat overlay = frame.clone();
-
-	//circle(overlay, center, radius, Scalar(255, 255, 255, 0.5), thickness, lineType);
-	//circle(frame,center,radius,Scalar(255, 255, 255,0.5),thickness,lineType);
-	for (int j = 0; j < o.approx_hull.size(); j++) {
-		circle(overlay, o.approx_hull[j], radius, Scalar(255, 255, 255), thickness, lineType);
-	}
 	for (int j = 0; j < o.approx_defects.size(); j++) {
 		Vec4i defect = o.approx_defects[j];
 		int max_distance_idx = defect[2];
 		circle(overlay, o.approx_contour[max_distance_idx], radius, Scalar(255, 0, 255), thickness, lineType);
 	}
-	circle(overlay, Point(o.boundRect.x, o.boundRect.y), radius, Scalar(255, 100, 255), thickness, lineType);
 	if (o.palm_radius > 0) {
 		circle(overlay, o.palm_center, radius, Scalar(255, 100, 255), thickness, lineType);
 		circle(overlay, o.palm_center, o.palm_radius, Scalar(255, 100, 255), 2, lineType);
 	}
+
+	if (debug) {
 	if (o.bound_circle_radius > 0) {
 		circle(overlay, o.bound_circle_center, o.bound_circle_radius, Scalar(255, 100, 255), 2, lineType);
 	}
-	for (int i = 0; i < o.curv_below_t_idx.size(); i++) {
-		int idx = o.curv_below_t_idx[i];
-		//cout << idx << ", size: " << o.approx_contour.size()<< "\n";
-		Point p = o.approx_contour[idx];
-		circle(overlay, p, 2, Scalar(0, 0, 255), thickness, lineType);
-		int test2 = 0;
+		for (int j = 0; j < o.semi_approx_inthull.size(); j++) {
+			circle(overlay, o.semi_approx_contour[o.semi_approx_inthull[j]], radius, Scalar(255, 255, 255), thickness, lineType);
+		}
 	}
-	//for (int i = 0; i < o.fingers_idx.size(); i++) {
-
-	//	line(overlay, o.palm_center, o.semi_approx_contour[o.fingers_idx[i]], Scalar(0, 255, 255), 5, 8, 0);
-	//	circle(overlay, o.semi_approx_contour[o.fingers_idx[i]], radius * 3, Scalar(255, 0, 0), thickness, lineType);
-	//}
-	for (int j = 0; j < o.semi_approx_inthull.size(); j++) {
-		circle(overlay, o.semi_approx_contour[o.semi_approx_inthull[j]], radius, Scalar(255, 255, 255), thickness, lineType);
-	}
-	//int thumb_index = o.find_thumb();
 	if ((o.thumb_point.x + o.thumb_point.y) > 0) {
 		circle(overlay, o.thumb_point, radius * 3, Scalar(255, 255, 255), thickness, lineType);
-	//	putText(overlay, to_string(o.thumb_angle), o.thumb_point, CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
-
 	}
 	for (int j = 0; j < o.fingers.size(); j++) {
 		Finger currentFinger = o.fingers[j];
 		Point root = currentFinger.finger_root;
 		Point tip = currentFinger.getPoint();
 		circle(overlay, tip, radius * 3, Scalar(255, 0, 0), thickness, lineType);
-
 		line(overlay, root, tip, Scalar(0,0, 255), 5, 8, 0);
 
 	}
 	putText(overlay, to_string(o.direction),Point(100,50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
 
-	//circle(overlay, o.thumb_dir, radius * 4, Scalar(255, 255, 0), thickness, lineType);
 	vector<vector<Point> > contourVec;
 	contourVec.push_back(o.approx_contour);
-	//drawContours(overlay, contourVec, 0, Scalar(0, 255, 255), 2, 8, vector<Vec4i>(), 0, Point());
-	o.draw_contour(overlay, o.semi_approx_contour,Scalar(0,0,255));
-	for (int j = 0; j < o.semi_approx_contour.size(); j++) {
-		circle(overlay, o.semi_approx_contour[j], 1, Scalar(0, 0, 0), thickness, lineType);
+	if (debug) {
+		o.draw_contour(overlay, o.semi_approx_contour,Scalar(0,0,255));
 	}
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 

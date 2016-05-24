@@ -299,7 +299,6 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 		Vec4i defect = defects[i];
 		if (is_finger_defect(defect, contour)) {
 			tmp_fingers_idx.push_back(defect[1]);
-
 			finger_defects.push_back(defect);
 			
 			current_area = (defect[3] / 256.0f)*point_distance(contour[defect[0]], contour[defect[1]]);
@@ -336,13 +335,13 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 		float angle = angle_between(dir, Point(1, 0));
 		thumb_angle = angle*180/CV_PI;
 
+		// detect hand direction
 		if (thumb_angle > 90) {
 			direction = RIGHT;
 		}
 		else {
 			direction = LEFT;
 		}
-
 	}
 	else {
 
