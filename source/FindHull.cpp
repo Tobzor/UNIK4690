@@ -352,6 +352,8 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 	new_fingers.clear();
 	for (int i = 0; i < finger_defects.size(); i++)
 	{
+		// this for loop is probably not the most elegant solution, 
+		// but it works and we are running out of time
 		Vec4i currentDefect = finger_defects[i];
 		Vec4i prevDefect, nextDefect;
 		if (i - 1 >= 0) {
@@ -369,41 +371,19 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 		Finger f,f2;
 		bool extra_finger = false;
 		if (direction == RIGHT) {
-
 			if (i == 0) {
-				f2 = Finger(currentDefect[0], contour, currentDefect, NULL);
-				extra_finger = true;
-
-				int idx = best_local_finger_point_idx(f2.idx, contour);
-				if (idx > -1) {
-					f2.idx = idx;
-					new_fingers.push_back(f2);
-				}
+				f = Finger(currentDefect[0], contour, currentDefect, NULL);
+				add_finger_if_valid(f, new_fingers);
 			}
 			f = Finger(currentDefect[1], contour, nextDefect, currentDefect);
-			int idx = best_local_finger_point_idx(f.idx, contour);
-			if (idx > -1) {
-				f.idx = idx;
-				new_fingers.push_back(f);
-			}
-
+			add_finger_if_valid(f, new_fingers);
 		}
 		else {		
 			f = Finger(currentDefect[0], contour, currentDefect, prevDefect);
-
-			int idx = best_local_finger_point_idx(f.idx, contour);
-			if (idx > -1) {
-				f.idx = idx;
-				new_fingers.push_back(f);
-			}
+			add_finger_if_valid(f, new_fingers);
 			if (i == finger_defects.size() - 1) {
-				f2 = Finger(currentDefect[1], contour, NULL, currentDefect);
-				extra_finger = true;
-				int idx = best_local_finger_point_idx(f2.idx, contour);
-				if (idx > -1) {
-					f2.idx = idx;
-					new_fingers.push_back(f2);
-				}
+				f = Finger(currentDefect[1], contour, NULL, currentDefect);
+				add_finger_if_valid(f, new_fingers);
 			}
 		}
 		fingers = new_fingers;
@@ -418,6 +398,13 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 		imshow("Threshold", threshold_output);
 	}
 	return fingers_idx;
+}
+bool FindHull::add_finger_if_valid(Finger f, vector<Finger>& fingers) {
+	int idx = best_local_finger_point_idx(f.idx, f.contour);
+	if (idx > -1) {
+		fingers.push_back(f);
+	}
+	return (idx > -1);
 }
 
 float FindHull::point_distance(Point p1, Point p2) {

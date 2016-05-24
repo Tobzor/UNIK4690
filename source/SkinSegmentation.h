@@ -7,20 +7,20 @@ using namespace std;
 class SkinSegmentation
 {
 	std::vector< cv::Rect > faces;
-/*  // leilighet 1
+  // leilighet 1
 	int Y_min  =  24; int Y_max  = 255;
 	int Cr_min = 136; int Cr_max = 187;
 	int Cb_min =  86; int Cb_max = 142;
-*/
+
 /*	// ifi
 	int Y_min = 108; int Y_max = 255;
 	int Cr_min = 0; int Cr_max = 255;
 	int Cb_min = 0; int Cb_max = 255;
 */	
 	// Ifi motsatt side av bordet
-	int Y_min = 49;  int Y_max = 136;
+	/*int Y_min = 49;  int Y_max = 136;
 	int Cr_min = 148; int Cr_max = 180;
-	int Cb_min = 77; int Cb_max = 136;
+	int Cb_min = 77; int Cb_max = 136;*/
 	// ifi
 	/*
 	int Y_min = 108; int Y_max = 255;

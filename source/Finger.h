@@ -9,9 +9,9 @@ class Finger
 {
 
 private:
-	vector <Point> contour;
 	Point find_finger_root();
 public:
+	vector <Point> contour;
 	int idx;
 	bool isThumb;
 	Point getPoint();
