@@ -368,32 +368,45 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 		Finger f,f2;
 		bool extra_finger = false;
 		if (direction == RIGHT) {
+
 			if (i == 0) {
 				f2 = Finger(currentDefect[0], contour, currentDefect, NULL);
 				extra_finger = true;
+
+				int idx = best_local_finger_point_idx(f2.idx, contour);
+				if (idx > -1) {
+					f2.idx = idx;
+					new_fingers.push_back(f2);
+				}
 			}
 			f = Finger(currentDefect[1], contour, nextDefect, currentDefect);
+			int idx = best_local_finger_point_idx(f.idx, contour);
+			if (idx > -1) {
+				f.idx = idx;
+				new_fingers.push_back(f);
+			}
+
 		}
 		else {
+
+			
 			f = Finger(currentDefect[0], contour, currentDefect, prevDefect);
+
+			int idx = best_local_finger_point_idx(f.idx, contour);
+			if (idx > -1) {
+				f.idx = idx;
+				new_fingers.push_back(f);
+			}
 			if (i == finger_defects.size() - 1) {
 				f2 = Finger(currentDefect[1], contour, NULL, currentDefect);
 				extra_finger = true;
+				int idx = best_local_finger_point_idx(f2.idx, contour);
+				if (idx > -1) {
+					f2.idx = idx;
+					new_fingers.push_back(f2);
+				}
 			}
 		}
-		int idx = best_local_finger_point_idx(f.idx, contour);
-		if (idx > -1) {
-			f.idx = idx;
-			new_fingers.push_back(f);
-		}
-		if (extra_finger) {
-			int idx = best_local_finger_point_idx(f2.idx, contour);
-			if (idx > -1) {
-				f2.idx = idx;
-				new_fingers.push_back(f2);
-			}
-		}
-		fingers.clear();
 		fingers = new_fingers;
 	}
 

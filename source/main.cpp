@@ -199,8 +199,19 @@ void draw_numbers(FindHull o, double opacity) {
 	int lineType = 1;
 	Mat overlay = frame.clone();
 	for (int j = 0; j < o.fingers_idx.size(); j++) {
-		putText(overlay, to_string(j+1), o.semi_approx_contour[o.fingers_idx[j]], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
+		//putText(overlay, to_string(j+1), o.semi_approx_contour[o.fingers_idx[j]], CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
 		
+	}
+	int no_fingers = o.fingers.size();
+	if (o.direction == FindHull::RIGHT) {
+		for (int j = 0; j < no_fingers; j++) {
+			putText(overlay, to_string(no_fingers-j-1), o.fingers[j].getPoint(), CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
+		}
+	}
+	else {
+		for (int j = 0; j < no_fingers; j++) {
+			putText(overlay, to_string(j), o.fingers[j].getPoint(), CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(0, 0, 255), 1, lineType);
+		}
 	}
 	putText(overlay, to_string(o.fingers_idx.size()), Point(50,50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
 	//putText(overlay, to_string(gun_count), Point(100, 100), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(100, 100, 255), 1, lineType);
