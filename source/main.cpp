@@ -199,7 +199,6 @@ void draw_circles(FindHull o, double opacity)
 		Point tip = currentFinger.getPoint();
 		circle(overlay, tip, radius * 3, Scalar(255, 0, 0), thickness, lineType);
 		line(overlay, root, tip, Scalar(0,0, 255), 5, 8, 0);
-
 	}
 	putText(overlay, to_string(o.direction),Point(100,50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
 
@@ -212,7 +211,6 @@ void draw_circles(FindHull o, double opacity)
 		o.draw_contour(overlay, o.semi_approx_contour,Scalar(0,0,255));
 	}
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
-
 
 }
 
