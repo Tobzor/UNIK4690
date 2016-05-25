@@ -201,8 +201,15 @@ void draw_circles(FindHull o, double opacity)
 		circle(overlay, tip, radius * 3, Scalar(255, 0, 0), thickness, lineType);
 		line(overlay, root, tip, Scalar(0,0, 255), 5, 8, 0);
 	}
-	putText(overlay, to_string(o.direction),Point(100,50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
-
+	if (o.direction > 0) {
+		putText(overlay, "RIGHT", Point(100, 50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
+	}
+	else if (o.direction < 0) {
+		putText(overlay, "LEFT", Point(100, 50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
+	}
+	else {
+		putText(overlay,"UNKNOWN", Point(100, 50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(100, 100, 255), 2, lineType);
+	}
 	if ((o.thumb_point.x + o.thumb_point.y) > 0) {
 		circle(overlay, o.thumb_point, 40, Scalar(255, 255, 255), thickness, lineType);
 	}
@@ -288,7 +295,6 @@ void draw_numbers(FindHull o, double opacity) {
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 	return;
 }
-
 bool is_peace_sign(FindHull o) {
 	int num_fingers = o.fingers_idx.size();
 	Vec4i thumb_defect = o.thumb_defect;
@@ -304,15 +310,7 @@ bool is_peace_sign(FindHull o) {
 	if ((angle_defect > 60) || (angle_defect < 40)) {
 		return false;
 	}
-
-	Point d = p1-p3;
-	float angle_fingers = o.angle_between(d,Point(1,0)) * 180 / CV_PI;
-	if ((angle_fingers> 120) || (angle_fingers < 60)) {
-		//return false;
-	}
-
 }
-
 bool is_finger_gun(FindHull o) {
 	int num_fingers = o.fingers_idx.size();
 	Vec4i thumb_defect = o.thumb_defect;

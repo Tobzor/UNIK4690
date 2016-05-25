@@ -386,10 +386,11 @@ vector < int> FindHull::find_finger_points(vector <Point> contour, vector<int> h
 		}
 		fingers = new_fingers;
 	}
+
 	for (int i = 0; i < k; i++) {
 		int idx = best_local_finger_point_idx(tmp_fingers_idx[i], contour);
 		if (idx > -1) {
-			fingers_idx.push_back(idx);
+			fingers_idx.push_back(idx); // old finger detection, we keep it for debugging purposes
 		}
 	}
 	if (debug_thresh) {
@@ -410,7 +411,9 @@ float FindHull::point_distance(Point p1, Point p2) {
 	Point d = p2 - p1;
 	return sqrt(d.dot(d));
 }
-
+//bool FindHull::is_finger_point(int idx, contour) {
+//
+//}
 bool FindHull::is_finger_defect(Vec4i defect, vector<Point> contour) {
 	int p1idx = defect[0]; int p2idx = defect[1]; int p3idx = defect[2];
 	Point p1 = contour[p1idx]; 
