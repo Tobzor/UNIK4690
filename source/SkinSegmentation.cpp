@@ -69,7 +69,9 @@ void SkinSegmentation::draw_faces(cv::Mat& image, std::vector< cv::Rect >faces) 
 SkinSegmentation::SkinSegmentation()
 {
 	// Change the path to your openCV/etc/haarcascades folder
-	if (!face_cascade.load("C:/opencv/opencv-vs2015_160317/etc/haarcascades/haarcascade_frontalface_default.xml")) {
+	// C:/unik4690/opencv_build/unik4690_v2016_v1/etc/haarcascades/haarcascade_frontalface_default.xml
+	// C:/opencv/opencv-vs2015_160317/etc/haarcascades/haarcascade_frontalface_default.xml
+	if (!face_cascade.load("C:/unik4690/opencv_build/unik4690_v2016_v1/etc/haarcascades/haarcascade_frontalface_default.xml")) {
 		throw std::runtime_error{ "Could not load cascade classifier" };
 	}
 	morph_element_opening = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(4, 4));

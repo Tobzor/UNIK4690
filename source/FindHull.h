@@ -25,6 +25,7 @@ private:
 
 	int best_local_finger_point_idx(int idx, vector <Point> contours);
 	bool is_thumb_defect(Vec4i defect, vector<Point> contour);
+	bool add_finger_if_valid(Finger f, vector<Finger>& fingers);
 public:
 	enum HandDir{LEFT=-1, RIGHT=1, UNKNOWN = 0} direction;
 	float thumb_angle = -1;
