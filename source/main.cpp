@@ -32,6 +32,7 @@ void draw_circles(FindHull, double opacity);
 double opacity = 0.9;
 void draw_numbers(FindHull o, double opacity);
 bool is_finger_gun(FindHull o);
+bool is_peace_sign(FindHull o);
 
 // Objects
 FindHull hull;
@@ -281,8 +282,35 @@ void draw_numbers(FindHull o, double opacity) {
 		gun_count = 0;
 		hasfired  = false;
 	}
+	if (is_peace_sign(o)) {
+		putText(overlay, "PEACE!", Point(200, 200), CV_FONT_HERSHEY_COMPLEX, 4, Scalar(0, 0, 255), 4, lineType);
+	}
 	addWeighted(overlay, opacity, frame, 1.0 - opacity, 0.0, frame);
 	return;
+}
+
+bool is_peace_sign(FindHull o) {
+	int num_fingers = o.fingers_idx.size();
+	Vec4i thumb_defect = o.thumb_defect;
+	if (num_fingers != 2) {
+		return false;
+	}
+	Point p1 = o.semi_approx_contour[thumb_defect[0]];
+	Point p2 = o.semi_approx_contour[thumb_defect[1]];
+	Point p3 = o.semi_approx_contour[thumb_defect[2]];
+
+	float angle_defect = o.angle_between(p1, p3, p2) * 180 / CV_PI;
+
+	if ((angle_defect > 60) || (angle_defect < 40)) {
+		return false;
+	}
+
+	Point d = p1-p3;
+	float angle_fingers = o.angle_between(d,Point(1,0)) * 180 / CV_PI;
+	if ((angle_fingers> 120) || (angle_fingers < 60)) {
+		//return false;
+	}
+
 }
 
 bool is_finger_gun(FindHull o) {
@@ -309,8 +337,9 @@ bool is_finger_gun(FindHull o) {
 
 	float angle = o.angle_between(p1, p3, p2)*180/CV_PI;
 
-	putText(frame, to_string(angle), Point(200, 200), CV_FONT_HERSHEY_COMPLEX, 4, Scalar(0, 0, 255), 4, 8);
-
+	if (debug) {
+		putText(frame, to_string(angle), Point(200, 200), CV_FONT_HERSHEY_COMPLEX, 4, Scalar(0, 0, 255), 4, 8);
+	}
 	if ((angle > 110) || (angle < 75)) {
 		return false;
 	}
